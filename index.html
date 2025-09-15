@@ -5,18 +5,56 @@
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
-      #example-scanning-overlay {}
+      #example-scanning-overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+      }
+      
       #example-scanning-overlay.hidden {
         display: none;
       }
+
+#scanning-box {
+  width: 250px;
+  height: 250px;
+  border: 4px solid white;
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+}
+
+#scanning-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 255, 0, 0.8);
+  animation: scanning 2s linear infinite;
+}
+      @keyframes scanning {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+    
     </style>
   </head>
 
   <body>
     <!-- Overlay de escaneo -->
-    <div id="example-scanning-overlay" class="hidden">
-      Escaneando...
-    </div>
+    <div id="example-scanning-overlay">
+  <div id="scanning-box">
+    <div id="scanning-line"></div>
+  </div>
+</div>
 
     <!-- Escena con MindAR -->
     <a-scene 
