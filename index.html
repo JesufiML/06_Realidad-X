@@ -121,9 +121,16 @@
           class="clickable"
         ></a-gltf-model>
 
-        <!-- Detectores adicionales -->
-        <a-sphere class="clickable" position="0 0.25 0.1" radius="0.5" color="#000" opacity="0" transparent="true"></a-sphere>
-        <a-box class="clickable" position="0 0 0.1" scale="1.5 1.5 0.1" color="#000" opacity="0" transparent="true"></a-box>
+        <!-- Detector principal -->
+        <a-plane 
+          class="clickable" 
+          position="0 0.1 0.05" 
+          width="1.2" 
+          height="1.2" 
+          color="#FF0000" 
+          opacity="0.0" 
+          transparent="true"
+        ></a-plane>
       </a-entity>
 
       <!-- ✅ Target 1: Pikachu/Pokebola -->
@@ -152,9 +159,16 @@
           class="clickable"
         ></a-gltf-model>
 
-        <!-- Detectores adicionales -->
-        <a-sphere class="clickable" position="0 0.25 0.1" radius="0.5" color="#000" opacity="0" transparent="true"></a-sphere>
-        <a-box class="clickable" position="0 0 0.1" scale="1.5 1.5 0.1" color="#000" opacity="0" transparent="true"></a-box>
+        <!-- Detector principal -->
+        <a-plane 
+          class="clickable" 
+          position="0 0.1 0.05" 
+          width="1.2" 
+          height="1.2" 
+          color="#0000FF" 
+          opacity="0.0" 
+          transparent="true"
+        ></a-plane>
       </a-entity>
     </a-scene>
 
@@ -182,6 +196,7 @@
             message.classList.remove("hidden");
             customScanningOverlay.classList.remove("hidden");
           }
+          console.log("Targets visibles - 0:", target0Found, "1:", target1Found);
         }
 
         // Función para alternar modelos del target 0 (Charmander)
@@ -202,7 +217,7 @@
           console.log("Target 1 cambiado a:", showPikachu ? "Pikachu" : "Pokebola");
         };
 
-        // Asignar eventos a TODOS los elementos clickeables del target 0
+        // Asignar eventos a los elementos clickeables del target 0
         const clickables0 = target0.querySelectorAll('.clickable');
         clickables0.forEach((el) => {
           el.addEventListener("click", toggleTarget0);
@@ -212,7 +227,7 @@
           });
         });
 
-        // Asignar eventos a TODOS los elementos clickeables del target 1
+        // Asignar eventos a los elementos clickeables del target 1
         const clickables1 = target1.querySelectorAll('.clickable');
         clickables1.forEach((el) => {
           el.addEventListener("click", toggleTarget1);
@@ -226,33 +241,44 @@
         target0.addEventListener("targetFound", () => {
           target0Found = true;
           updateOverlays();
-          console.log("Target 0 (Charmander) encontrado");
+          console.log("✅ Target 0 (Charmander) encontrado");
         });
 
         target0.addEventListener("targetLost", () => {
           target0Found = false;
           updateOverlays();
-          console.log("Target 0 (Charmander) perdido");
+          console.log("❌ Target 0 (Charmander) perdido");
         });
 
         // Eventos para target 1
         target1.addEventListener("targetFound", () => {
           target1Found = true;
           updateOverlays();
-          console.log("Target 1 (Pikachu) encontrado");
+          console.log("✅ Target 1 (Pikachu) encontrado");
         });
 
         target1.addEventListener("targetLost", () => {
           target1Found = false;
           updateOverlays();
-          console.log("Target 1 (Pikachu) perdido");
+          console.log("❌ Target 1 (Pikachu) perdido");
         });
 
-        // Verificar estado inicial de los modelos
-        console.log("Estado inicial - Charmander visible:", charmander.getAttribute("visible"));
-        console.log("Estado inicial - Pokeball1 visible:", pokeball1.getAttribute("visible"));
-        console.log("Estado inicial - Pikachu visible:", pikachu.getAttribute("visible"));
-        console.log("Estado inicial - Pokeball2 visible:", pokeball2.getAttribute("visible"));
+        // Verificar configuración de MindAR
+        const scene = document.querySelector('a-scene');
+        scene.addEventListener('arReady', (evt) => {
+          console.log("🚀 AR Ready - Configuración:", evt.detail);
+          const mindarSystem = scene.systems['mindar-image-system'];
+          console.log("Max track:", mindarSystem.maxTrack);
+        });
+
+        // Debug: Simular múltiples targets después de 3 segundos
+        setTimeout(() => {
+          console.log("🔍 Verificando estado de targets...");
+          console.log("Charmander visible:", charmander.getAttribute("visible"));
+          console.log("Pokeball1 visible:", pokeball1.getAttribute("visible"));
+          console.log("Pikachu visible:", pikachu.getAttribute("visible"));
+          console.log("Pokeball2 visible:", pokeball2.getAttribute("visible"));
+        }, 3000);
 
         // Forzar actualización inicial
         updateOverlays();
