@@ -1,38 +1,67 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
+      /* Mensaje inicial */
+      #message {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 10px;
+        font-family: sans-serif;
+        font-size: 18px;
+        text-align: center;
+        z-index: 999;
+        transition: opacity 0.5s ease;
+      }
+      #message.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* Overlay de escaneo */
       #example-scanning-overlay {
         position: absolute;
         left: 0; top: 0;
         width: 100%; height: 100%;
         background: rgba(0,0,0,0.5);
-        z-index: 9999;
+        z-index: 998;
         display: flex;
         justify-content: center;
         align-items: center;
+        pointer-events: none;
       }
-      #example-scanning-overlay.hidden { display: none; }
+
+      /* Cuadro blanco y línea verde */
       #scanning-box {
-        width: 250px; height: 250px;
+        width: 250px;
+        height: 250px;
         border: 4px solid white;
         position: relative;
         overflow: hidden;
         background: transparent;
       }
+
       #scanning-line {
-        position: absolute; top: 0; left: 0;
+        position: absolute;
+        top: 0; left: 0;
         width: 100%; height: 4px;
         background: rgba(0, 255, 0, 0.8);
         animation: scanning 2s linear infinite;
       }
+
       @keyframes scanning { 0% { top: 0; } 100% { top: 100%; } }
+
       #scan-text {
         position: absolute;
-        top: 50%; left: 50%;
+        top: 50%;
+        left: 50%;
         transform: translate(-50%, -50%);
         color: white;
         font-size: 16px;
@@ -43,83 +72,110 @@
   </head>
 
   <body>
+    <!-- Mensaje inicial -->
+    <div id="message">📷 Apunta tu cámara al marcador para comenzar</div>
+
     <!-- Overlay de escaneo -->
     <div id="example-scanning-overlay">
       <div id="scanning-box">
-        <p id="scan-text">Localiza los targets correctos para ver los modelos 3D</p>
+        <p id="scan-text">Localiza los targets correctos para mostrar los modelos 3D</p>
         <div id="scanning-line"></div>
       </div>
     </div>
 
     <!-- Escena MindAR -->
-    <a-scene 
-      mindar-image="uiScanning: #example-scanning-overlay; imageTargetSrc: ./targets.mind; maxTrack: 2"
-      color-space="sRGB" 
+    <a-scene
+      mindar-image="uiScanning: #example-scanning-overlay; imageTargetSrc: ./targets.mind; maxTrack: 2;"
+      color-space="sRGB"
       renderer="colorManagement: true, physicallyCorrectLights"
-      vr-mode-ui="enabled: false" 
-      device-orientation-permission-ui="enabled: false">
-
-      <!-- Assets -->
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+      embedded
+    >
       <a-assets>
-        <img id="card" src="FondoPokebola.jpg" />
-        <a-asset-item id="avatarModel1" src="./Charmander.glb"></a-asset-item>
-        <a-asset-item id="avatarModel2" src="./Pikachu.glb"></a-asset-item>
-        <a-asset-item id="avatarModel3" src="./pokeball.glb"></a-asset-item>
+        <a-asset-item id="charmanderModel" src="./Charmander.glb"></a-asset-item>
+        <a-asset-item id="pikachuModel" src="./Pikachu.glb"></a-asset-item>
+        <a-asset-item id="pokeballModel" src="./pokeball.glb"></a-asset-item>
       </a-assets>
 
-      <!-- Cámara -->
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+      <a-camera
+        position="0 0 0"
+        look-controls="enabled: false"
+        cursor="rayOrigin: mouse"
+        raycaster="objects: .clickable"
+      ></a-camera>
 
-      <!-- Target 1: Charmander -->
-      <a-entity mindar-image-target="targetIndex: 0">
-        <a-plane src="#card" position="0 0 0" height="0.552" width="1"></a-plane>
-        <a-gltf-model id="model1"
-          gltf-model="#avatarModel1"
-          position="0 0 1" scale="0.7 0.7 0.7"
-          rotation="0 180 0"
-          animation-mixer>
-        </a-gltf-model>
-      </a-entity>
+      <!-- Target 0 con modelos y detectores -->
+      <a-entity mindar-image-target="targetIndex: 0" id="target-entity">
+        <!-- Modelos -->
+        <a-gltf-model
+          id="charmander"
+          gltf-model="#charmanderModel"
+          position="0 0 0.1"
+          scale="0.7 0.7 0.7"
+          visible="true"
+        ></a-gltf-model>
 
-      <!-- Target 2: Pikachu -->
-      <a-entity mindar-image-target="targetIndex: 1">
-        <a-plane src="#card" position="0 0 0" height="0.552" width="1"></a-plane>
-        <a-gltf-model id="model2"
-          gltf-model="#avatarModel2"
-          position="0 0 1" scale="0.7 0.7 0.7"
-          rotation="0 180 0"
-          animation-mixer>
-        </a-gltf-model>
+        <a-gltf-model
+          id="pikachu"
+          gltf-model="#pikachuModel"
+          position="0 0 0.1"
+          scale="0.7 0.7 0.7"
+          visible="true"
+        ></a-gltf-model>
+
+        <a-gltf-model
+          id="pokeball"
+          gltf-model="#pokeballModel"
+          position="0 0 0.1"
+          scale="0.7 0.7 0.7"
+          visible="false"
+        ></a-gltf-model>
+
+        <!-- Detectores de toque -->
+        <a-sphere id="touch-sphere" class="clickable" position="0 0.25 0.1" radius="1" color="#000" opacity="0" transparent="true"></a-sphere>
+        <a-box id="touch-box-large" class="clickable" position="0 0 0.1" scale="2 2 0.1" color="#000" opacity="0" transparent="true"></a-box>
+        <a-box id="touch-box-tall" class="clickable" position="0 0.5 0.1" scale="2 2 1" color="#000" opacity="0" transparent="true"></a-box>
+        <a-plane id="touch-plane" class="clickable" position="0 0 0.05" rotation="0 0 0" width="3" height="3" color="#000" opacity="0" transparent="true"></a-plane>
       </a-entity>
     </a-scene>
 
-    <!-- Script para alternar modelos -->
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        const model1 = document.querySelector("#model1");
-        const model2 = document.querySelector("#model2");
+        const charmander = document.querySelector("#charmander");
+        const pikachu = document.querySelector("#pikachu");
+        const pokeball = document.querySelector("#pokeball");
+        const targetEntity = document.querySelector("#target-entity");
+        const message = document.querySelector("#message");
 
-        const original1 = "#avatarModel1";
-        const original2 = "#avatarModel2";
-        const alt = "#avatarModel3";
+        const detectors = [
+          document.querySelector("#touch-sphere"),
+          document.querySelector("#touch-box-large"),
+          document.querySelector("#touch-box-tall"),
+          document.querySelector("#touch-plane")
+        ];
 
-        let toggled = false;
+        const toggleModels = () => {
+          const isPokeballVisible = pokeball.getAttribute("visible");
+          charmander.setAttribute("visible", isPokeballVisible);
+          pikachu.setAttribute("visible", isPokeballVisible);
+          pokeball.setAttribute("visible", !isPokeballVisible);
+        };
 
-        function toggleModels() {
-          // Solo alterna si algún target está visible
-          const target1Visible = document.querySelector('[mindar-image-target="targetIndex: 0"]').getAttribute('visible');
-          const target2Visible = document.querySelector('[mindar-image-target="targetIndex: 1"]').getAttribute('visible');
+        detectors.forEach((el) => {
+          el.addEventListener("click", toggleModels);
+          el.addEventListener("touchstart", toggleModels); // para móviles
+        });
 
-          if (target1Visible || target2Visible) {
-            toggled = !toggled;
-            model1.setAttribute("gltf-model", toggled ? alt : original1);
-            model2.setAttribute("gltf-model", toggled ? alt : original2);
-          }
-        }
+        // Oculta el mensaje cuando se detecta el target
+        targetEntity.addEventListener("targetFound", () => {
+          message.classList.add("hidden");
+        });
 
-        // Escucha toques en móvil y clicks en escritorio
-        window.addEventListener("touchstart", toggleModels);
-        window.addEventListener("click", toggleModels);
+        // Muestra el mensaje de nuevo si se pierde el target
+        targetEntity.addEventListener("targetLost", () => {
+          message.classList.remove("hidden");
+        });
       });
     </script>
   </body>
