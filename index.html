@@ -39,6 +39,25 @@
         text-align: center;
         padding: 5px;
       }
+      #message {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 10px;
+        font-family: sans-serif;
+        font-size: 18px;
+        text-align: center;
+        z-index: 10000;
+        transition: opacity 0.5s ease;
+      }
+      #message.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
     </style>
   </head>
 
@@ -51,8 +70,11 @@
       </div>
     </div>
 
+    <!-- Mensaje inicial -->
+    <div id="message">📷 Apunta tu cámara al marcador para comenzar</div>
+
     <a-scene
-      mindar-image="imageTargetSrc: ./targets.mind; autoStart: true;"
+      mindar-image="uiScanning: #example-scanning-overlay; imageTargetSrc: ./targets.mind; autoStart: true;"
       color-space="sRGB"
       renderer="colorManagement: true, physicallyCorrectLights"
       vr-mode-ui="enabled: false"
@@ -81,7 +103,7 @@
         <a-gltf-model
           id="charmander"
           gltf-model="#charmanderModel"
-          position="0 0 1"
+          position="0 0.1 0.1"
           scale="0.7 0.7 0.7"
           rotation="0 180 0"
           visible="true"
@@ -91,8 +113,8 @@
         <a-gltf-model
           id="pokeball1"
           gltf-model="#pokeballModel"
-          position="0 0 1"
-          scale="0.7 0.7 0.7"
+          position="0 0.1 0.1"
+          scale="0.4 0.4 0.4"
           rotation="0 180 0"
           visible="false"
         ></a-gltf-model>
@@ -112,8 +134,8 @@
         <a-gltf-model
           id="pikachu"
           gltf-model="#pikachuModel"
-          position="0 0 1"
-          scale="0.7 0.7 0.7"
+          position="0 0.1 0.1"
+          scale="0.6 0.6 0.6"
           rotation="0 180 0"
           visible="true"
           animation-mixer
@@ -123,7 +145,7 @@
           id="pokeball2"
           gltf-model="#pokeballModel"
           position="0 0.1 0.1"
-          scale="0.7 0.7 0.7"
+          scale="0.4 0.4 0.4"
           rotation="0 180 0"
           visible="false"
         ></a-gltf-model>
@@ -145,6 +167,7 @@
         const target0 = document.querySelector("#target0");
         const target1 = document.querySelector("#target1");
         const message = document.querySelector("#message");
+        const scanningOverlay = document.querySelector("#example-scanning-overlay");
 
         const detectors0 = target0.querySelectorAll(".clickable");
         const detectors1 = target1.querySelectorAll(".clickable");
@@ -166,36 +189,48 @@
         // Asignar eventos a los detectores del target 0
         detectors0.forEach((el) => {
           el.addEventListener("click", toggleTarget0);
+          el.addEventListener("touchstart", toggleTarget0);
         });
 
         // Asignar eventos a los detectores del target 1
         detectors1.forEach((el) => {
           el.addEventListener("click", toggleTarget1);
+          el.addEventListener("touchstart", toggleTarget1);
         });
 
-        // ✅ Oculta el mensaje cuando se detecta cualquier target
+        // ✅ Oculta el mensaje y overlay cuando se detecta cualquier target
         target0.addEventListener("targetFound", () => {
           message.classList.add("hidden");
+          scanningOverlay.classList.add("hidden");
         });
 
         target1.addEventListener("targetFound", () => {
           message.classList.add("hidden");
+          scanningOverlay.classList.add("hidden");
         });
 
-        // (Opcional) Muestra el mensaje de nuevo si se pierden todos los targets
+        // Muestra el mensaje de nuevo si se pierden todos los targets
         const checkAllTargetsLost = () => {
           setTimeout(() => {
-            const target0Visible = target0.getAttribute("mindar-image-target").targetVisible;
-            const target1Visible = target1.getAttribute("mindar-image-target").targetVisible;
+            // Verificar visibilidad de targets usando eventos nativos de MindAR
+            const isTarget0Visible = target0.components['mindar-image-target'].targetVisible;
+            const isTarget1Visible = target1.components['mindar-image-target'].targetVisible;
             
-            if (!target0Visible && !target1Visible) {
+            if (!isTarget0Visible && !isTarget1Visible) {
               message.classList.remove("hidden");
+              scanningOverlay.classList.remove("hidden");
             }
           }, 100);
         };
 
         target0.addEventListener("targetLost", checkAllTargetsLost);
         target1.addEventListener("targetLost", checkAllTargetsLost);
+
+        // También manejar el overlay de escaneo de MindAR
+        const scene = document.querySelector('a-scene');
+        scene.addEventListener('arReady', () => {
+          console.log("AR Ready");
+        });
       });
     </script>
   </body>
