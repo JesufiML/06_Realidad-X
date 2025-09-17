@@ -39,6 +39,18 @@
         text-align: center;
         padding: 5px;
       }
+      .tap-hint {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        background: rgba(0,0,0,0.7);
+        padding: 10px;
+        border-radius: 10px;
+        display: none;
+        z-index: 10000;
+      }
     </style>
   </head>
 
@@ -50,6 +62,9 @@
         <div id="scanning-line"></div>
       </div>
     </div>
+
+    <!-- Indicador de tap -->
+    <div id="tap-hint" class="tap-hint">Toca el modelo para cambiarlo</div>
 
     <!-- Escena MindAR -->
     <a-scene 
@@ -72,23 +87,27 @@
 
       <!-- Target 1: Charmander -->
       <a-entity mindar-image-target="targetIndex: 0" id="target0">
-        <a-plane src="#card" position="0 0 0" height="0.552" width="1"></a-plane>
+        <a-plane src="#card" position="0 0 0" height="0.552" width="1" 
+                 class="clickable" data-target-index="0"></a-plane>
         <a-gltf-model id="model1"
           gltf-model="#avatarModel1"
-          position="0 0 1" scale="0.7 0.7 0.7"
+          position="0 0 0.1" scale="0.7 0.7 0.7"
           rotation="0 180 0"
-          animation-mixer>
+          animation-mixer
+          class="clickable" data-target-index="0">
         </a-gltf-model>
       </a-entity>
 
       <!-- Target 2: Pikachu -->
       <a-entity mindar-image-target="targetIndex: 1" id="target1">
-        <a-plane src="#card" position="0 0 0" height="0.552" width="1"></a-plane>
+        <a-plane src="#card" position="0 0 0" height="0.552" width="1" 
+                 class="clickable" data-target-index="1"></a-plane>
         <a-gltf-model id="model2"
           gltf-model="#avatarModel2"
-          position="0 0 1" scale="0.7 0.7 0.7"
+          position="0 0 0.1" scale="0.7 0.7 0.7"
           rotation="0 180 0"
-          animation-mixer>
+          animation-mixer
+          class="clickable" data-target-index="1">
         </a-gltf-model>
       </a-entity>
     </a-scene>
@@ -101,37 +120,82 @@
             entity: document.querySelector("#target0"),
             model: document.querySelector("#model1"),
             original: "#avatarModel1",
-            toggled: false
+            toggled: false,
+            visible: false
           },
           {
             entity: document.querySelector("#target1"),
             model: document.querySelector("#model2"),
             original: "#avatarModel2",
-            toggled: false
+            toggled: false,
+            visible: false
           }
         ];
 
-        const alt = "#avatarModel3";
+        const tapHint = document.querySelector("#tap-hint");
+        const altModel = "#avatarModel3";
 
-        // Mantener visibilidad de cada target
-        const targetVisible = [false, false];
-
-        targets.forEach((t, index) => {
-          t.entity.addEventListener("targetFound", () => targetVisible[index] = true);
-          t.entity.addEventListener("targetLost", () => targetVisible[index] = false);
-
-          // Escuchar click o touch en el target (plano de fondo)
-          t.entity.addEventListener("click", () => {
-            if (!targetVisible[index]) return;
-            t.toggled = !t.toggled;
-            t.model.setAttribute("gltf-model", t.toggled ? alt : t.original);
+        // Configurar eventos para cada target
+        targets.forEach((target, index) => {
+          // Eventos de MindAR
+          target.entity.addEventListener("targetFound", () => {
+            target.visible = true;
+            tapHint.style.display = "block";
+          });
+          
+          target.entity.addEventListener("targetLost", () => {
+            target.visible = false;
+            // Ocultar hint si ningún target está visible
+            if (!targets.some(t => t.visible)) {
+              tapHint.style.display = "none";
+            }
           });
 
-          t.entity.addEventListener("touchstart", () => {
-            if (!targetVisible[index]) return;
-            t.toggled = !t.toggled;
-            t.model.setAttribute("gltf-model", t.toggled ? alt : t.original);
+          // Hacer que tanto el plano como el modelo sean clickeables
+          const clickableElements = target.entity.querySelectorAll('.clickable');
+          clickableElements.forEach(element => {
+            element.addEventListener('click', () => {
+              if (target.visible) {
+                toggleModel(target);
+              }
+            });
+            
+            // Eventos táctiles para móviles
+            element.addEventListener('touchstart', (e) => {
+              if (target.visible) {
+                e.preventDefault();
+                toggleModel(target);
+              }
+            });
           });
+        });
+
+        // Función para alternar modelos
+        function toggleModel(target) {
+          target.toggled = !target.toggled;
+          const newModel = target.toggled ? altModel : target.original;
+          
+          // Cambiar el modelo
+          target.model.setAttribute("gltf-model", newModel);
+          
+          // Pequeña animación de feedback
+          target.model.setAttribute("scale", "0.65 0.65 0.65");
+          setTimeout(() => {
+            target.model.setAttribute("scale", "0.7 0.7 0.7");
+          }, 100);
+        }
+
+        // También permitir tap en toda la escena para móviles
+        const scene = document.querySelector('a-scene');
+        scene.addEventListener('touchstart', (e) => {
+          // Solo procesar si es un tap simple (no un swipe)
+          if (e.touches.length === 1) {
+            // Verificar si algún target está visible
+            const visibleTarget = targets.find(t => t.visible);
+            if (visibleTarget) {
+              toggleModel(visibleTarget);
+            }
+          }
         });
       });
     </script>
