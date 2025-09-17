@@ -4,25 +4,7 @@
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 <style>
-  /* Interfaz personalizada */
-  #infoBox {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 10px 20px;
-    background-color: rgba(0,0,0,0.7);
-    color: #0f0;
-    border: 2px solid #0f0;
-    border-radius: 10px;
-    font-family: Arial, sans-serif;
-  }
-  button {
-    margin-left: 10px;
-    padding: 5px 10px;
-    font-size: 14px;
-    cursor: pointer;
-  }
+  /* Mensaje inicial */
   #scanOverlay {
     position: absolute;
     top: 50%;
@@ -34,25 +16,16 @@
     color: #0f0;
     font-family: Arial, sans-serif;
     font-size: 16px;
+    text-align: center;
+    z-index: 1000;
   }
   #scanOverlay.hidden { display: none; }
 </style>
 </head>
 
 <body>
-  <!-- Overlay de escaneo -->
+  <!-- Mensaje inicial -->
   <div id="scanOverlay">Escanea los targets correctos para visualizar los modelos 3D</div>
-
-  <!-- Controles AR -->
-  <div id="infoBox">
-    AR Multi-Target MindAR
-    <button id="changeModelBtn">Cambiar Modelo</button>
-    <button id="startBtn">Start</button>
-    <button id="pauseBtn">Pause</button>
-    <button id="pauseKeepBtn">Pause (keep video)</button>
-    <button id="unpauseBtn">UnPause</button>
-    <button id="stopBtn">Stop</button>
-  </div>
 
   <a-scene mindar-image="
       imageTargetSrc: targets.mind;
@@ -60,7 +33,7 @@
       uiScanning: #scanOverlay;
       uiLoading: no;
       uiError: no;
-      autoStart: false;"
+      autoStart: true;"
       color-space="sRGB"
       renderer="colorManagement: true, physicallyCorrectLights"
       vr-mode-ui="enabled: false"
@@ -70,20 +43,17 @@
       <a-asset-item id="charmanderModel" src="Charmander.glb"></a-asset-item>
       <a-asset-item id="pikachuModel" src="Pikachu.glb"></a-asset-item>
       <a-asset-item id="unifiedModel" src="pokeball.glb"></a-asset-item>
-      <img id="backgroundTexture" src="FondoPokebola.jpg" />
     </a-assets>
 
     <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="objects: .clickable"></a-camera>
 
     <!-- Target 0 -->
     <a-entity id="target0" mindar-image-target="targetIndex: 0">
-      <a-plane src="#backgroundTexture" rotation="-90 0 0" height="1" width="1" position="0 0 0"></a-plane>
       <a-gltf-model id="model0" class="clickable" rotation="0 0 0" position="0 -0.25 0" scale="0.05 0.05 0.05" src="#charmanderModel" animation-mixer></a-gltf-model>
     </a-entity>
 
     <!-- Target 1 -->
     <a-entity id="target1" mindar-image-target="targetIndex: 1">
-      <a-plane src="#backgroundTexture" rotation="-90 0 0" height="1" width="1" position="0 0 0"></a-plane>
       <a-gltf-model id="model1" class="clickable" rotation="0 0 0" position="0 -0.25 0" scale="0.05 0.05 0.05" src="#pikachuModel" animation-mixer></a-gltf-model>
     </a-entity>
 
@@ -91,52 +61,33 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const sceneEl = document.querySelector('a-scene');
-  const arSystem = sceneEl.systems["mindar-image-system"];
-
+  const scanOverlay = document.querySelector('#scanOverlay');
   const model0 = document.querySelector('#model0');
   const model1 = document.querySelector('#model1');
-
-  const scanOverlay = document.querySelector('#scanOverlay');
-  const changeBtn = document.querySelector('#changeModelBtn');
-  const startBtn = document.querySelector('#startBtn');
-  const stopBtn = document.querySelector('#stopBtn');
-  const pauseBtn = document.querySelector('#pauseBtn');
-  const pauseKeepBtn = document.querySelector('#pauseKeepBtn');
-  const unpauseBtn = document.querySelector('#unpauseBtn');
-
   const target0 = document.querySelector('#target0');
   const target1 = document.querySelector('#target1');
 
-  // Función para cambiar ambos modelos al unificado
+  // Función para cambiar ambos modelos al unificado si se desea
   function cambiarModelos() {
     model0.setAttribute('gltf-model', '#unifiedModel');
     model1.setAttribute('gltf-model', '#unifiedModel');
   }
 
-  // Eventos de botón
-  changeBtn.addEventListener('click', cambiarModelos);
-  startBtn.addEventListener('click', () => arSystem.start());
-  stopBtn.addEventListener('click', () => arSystem.stop());
-  pauseBtn.addEventListener('click', () => arSystem.pause());
-  pauseKeepBtn.addEventListener('click', () => arSystem.pause(true));
-  unpauseBtn.addEventListener('click', () => arSystem.unpause());
-
-  // Eventos de clic sobre los modelos
-  model0.addEventListener('click', cambiarModelos);
-  model1.addEventListener('click', cambiarModelos);
-
-  // Mostrar/ocultar overlay según target detectado
+  // Oculta el mensaje al detectar cualquier target
   target0.addEventListener('targetFound', () => scanOverlay.classList.add('hidden'));
   target1.addEventListener('targetFound', () => scanOverlay.classList.add('hidden'));
-  target0.addEventListener('targetLost', () => scanOverlay.classList.remove('hidden'));
-  target1.addEventListener('targetLost', () => scanOverlay.classList.remove('hidden'));
 
-  // Logging de detección
-  target0.addEventListener('targetFound', () => console.log('Target 0 encontrado'));
-  target1.addEventListener('targetFound', () => console.log('Target 1 encontrado'));
-  target0.addEventListener('targetLost', () => console.log('Target 0 perdido'));
-  target1.addEventListener('targetLost', () => console.log('Target 1 perdido'));
+  // Vuelve a mostrar mensaje si se pierden ambos targets
+  target0.addEventListener('targetLost', () => {
+    if (!target1.components["mindar-image-target"].visible) scanOverlay.classList.remove('hidden');
+  });
+  target1.addEventListener('targetLost', () => {
+    if (!target0.components["mindar-image-target"].visible) scanOverlay.classList.remove('hidden');
+  });
+
+  // Click sobre los modelos para cambiar al unificado
+  model0.addEventListener('click', cambiarModelos);
+  model1.addEventListener('click', cambiarModelos);
 });
 </script>
 
