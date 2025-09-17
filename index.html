@@ -1,8 +1,3 @@
-¡Perfecto! Podemos agregar un **botón visible en pantalla** que cambie los modelos al unificado cuando se toque, y mantener la detección automática de la cámara. Esto evita depender del clic sobre los modelos (que a veces no funciona bien en dispositivos móviles).
-
-Aquí tienes el código actualizado con un **botón “Cambiar Modelo” funcional**:
-
-```html
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -73,12 +68,12 @@ Aquí tienes el código actualizado con un **botón “Cambiar Modelo” funcion
 
     <!-- Target 0 -->
     <a-entity id="target0" mindar-image-target="targetIndex: 0">
-      <a-gltf-model id="model0" rotation="0 0 0" position="0 -0.25 0" scale="0.05 0.05 0.05" src="#charmanderModel" animation-mixer></a-gltf-model>
+      <a-gltf-model id="model0" rotation="0 180 0" position="0 0 1" scale="0.7 0.7 07" src="#charmanderModel" animation-mixer></a-gltf-model>
     </a-entity>
 
     <!-- Target 1 -->
     <a-entity id="target1" mindar-image-target="targetIndex: 1">
-      <a-gltf-model id="model1" rotation="0 0 0" position="0 -0.25 0" scale="0.05 0.05 0.05" src="#pikachuModel" animation-mixer></a-gltf-model>
+      <a-gltf-model id="model1" rotation="0 180 0" position="0 0 1" scale="0.7 0.7 0.7" src="#pikachuModel" animation-mixer></a-gltf-model>
     </a-entity>
 
   </a-scene>
@@ -117,15 +112,3 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
-```
-
-✅ **Ahora funciona así**:
-
-* La cámara **arranca automáticamente**.
-* Solo aparece un mensaje inicial indicando que escanees los targets.
-* Botón verde en la parte inferior para **cambiar los modelos al unificado** (`pokeball.glb`) cuando quieras.
-* Los modelos aparecen cuando se detectan los targets correctamente.
-
-Si quieres, puedo agregar **una animación de aparición o marco verde** sobre cada target cuando se detecte, para que el cambio sea más visual.
-
-¿Quieres que haga eso?
