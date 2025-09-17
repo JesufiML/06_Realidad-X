@@ -62,16 +62,8 @@
   </head>
 
   <body>
-    <!-- Overlay de escaneo personalizado -->
-    <div id="custom-scanning-overlay" class="scanning-overlay">
-      <div class="scanning-box">
-        <p class="scan-text">Localiza los targets correctos para ver los modelos 3D</p>
-        <div class="scanning-line"></div>
-      </div>
-    </div>
-
     <!-- Mensaje inicial -->
-    <div id="message">📷 Apunta tu cámara al marcador para comenzar</div>
+    <div id="message">Localiza los targets correctos para ver los modelos 3D</div>
 
     <a-scene
       mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiScanning: #custom-scanning-overlay; uiLoading: no; maxTrack: 2;"
