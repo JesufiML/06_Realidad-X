@@ -12,14 +12,14 @@
       top: 10%;
       left: 50%;
       transform: translateX(-50%);
-      background-color: rgba(0,0,0,0.5);
-      padding: 10px 20px;
+      background-color: rgba(0,0,0,0.6);
+      padding: 12px 20px;
       border-radius: 10px;
       color: #0f0;
       font-family: Arial, sans-serif;
       font-size: 16px;
       text-align: center;
-      z-index: 1000;
+      z-index: 5; /* encima de la cámara */
     }
     #scanOverlay.hidden { display: none; }
 
@@ -36,7 +36,7 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      z-index: 1000;
+      z-index: 5;
       display: none; /* oculto al inicio */
     }
   </style>
@@ -49,15 +49,11 @@
   <!-- Botón (se muestra al detectar target) -->
   <button id="changeBtn">Cambiar a Pokebola</button>
 
-  <a-scene mindar-image="
-      imageTargetSrc: targets.mind;
-      maxTrack: 2;
-      uiLoading: no;
-      uiError: no;
-      autoStart: true;"
+  <a-scene 
+      mindar-image="imageTargetSrc: targets.mind; maxTrack: 2; autoStart: true;"
       embedded
       color-space="sRGB"
-      renderer="colorManagement: true, physicallyCorrectLights"
+      renderer="colorManagement: true, physicallyCorrectLights, alpha: true"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false">
 
@@ -100,15 +96,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const target0 = document.querySelector('#target0');
   const target1 = document.querySelector('#target1');
 
-  let showingPokeball = false; // estado actual
+  let showingPokeball = false;
 
-  // Mostrar botón y ocultar mensaje al detectar un target
   function onTargetFound() {
     scanOverlay.classList.add('hidden');
     changeBtn.style.display = 'block';
   }
 
-  // Si ambos se pierden, vuelve a mostrar mensaje y oculta botón
   function onTargetLost() {
     setTimeout(() => {
       if (!target0.components["mindar-image-target"].visible &&
@@ -119,16 +113,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 500);
   }
 
-  // Listeners de los targets
   target0.addEventListener('targetFound', onTargetFound);
   target1.addEventListener('targetFound', onTargetFound);
   target0.addEventListener('targetLost', onTargetLost);
   target1.addEventListener('targetLost', onTargetLost);
 
-  // Cambiar entre pokebola y modelos principales
   changeBtn.addEventListener('click', () => {
     if (!showingPokeball) {
-      // Mostrar pokebola
       [model0, model1].forEach(m => {
         m.setAttribute('gltf-model', '#unifiedModel');
         m.setAttribute('rotation', '0 0 0');
@@ -138,7 +129,6 @@ document.addEventListener("DOMContentLoaded", () => {
       changeBtn.textContent = "Cambiar a Pokémon";
       showingPokeball = true;
     } else {
-      // Volver a los modelos originales
       model0.setAttribute('gltf-model', '#charmanderModel');
       model0.setAttribute('rotation', '0 180 0');
       model0.setAttribute('scale', '0.25 0.25 0.25');
