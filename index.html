@@ -47,7 +47,7 @@
   <div id="scanOverlay">Escanea los targets correctos para visualizar los modelos 3D</div>
 
   <!-- Botón (se muestra al detectar target) -->
-  <button id="changeBtn">Cambiar Modelo</button>
+  <button id="changeBtn">Cambiar a Pokebola</button>
 
   <a-scene mindar-image="
       imageTargetSrc: targets.mind;
@@ -74,7 +74,7 @@
       <a-gltf-model id="model0"
         rotation="0 180 0"
         position="0 -0.25 0"
-        scale="0.15 0.15 0.15"
+        scale="0.25 0.25 0.25"
         src="#charmanderModel"
         animation-mixer></a-gltf-model>
     </a-entity>
@@ -84,7 +84,7 @@
       <a-gltf-model id="model1"
         rotation="0 180 0"
         position="0 -0.25 0"
-        scale="0.15 0.15 0.15"
+        scale="0.25 0.25 0.25"
         src="#pikachuModel"
         animation-mixer></a-gltf-model>
     </a-entity>
@@ -100,11 +100,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const target0 = document.querySelector('#target0');
   const target1 = document.querySelector('#target1');
 
-  let algunTargetVisible = false;
+  let showingPokeball = false; // estado actual
 
   // Mostrar botón y ocultar mensaje al detectar un target
   function onTargetFound() {
-    algunTargetVisible = true;
     scanOverlay.classList.add('hidden');
     changeBtn.style.display = 'block';
   }
@@ -114,23 +113,45 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => {
       if (!target0.components["mindar-image-target"].visible &&
           !target1.components["mindar-image-target"].visible) {
-        algunTargetVisible = false;
         scanOverlay.classList.remove('hidden');
         changeBtn.style.display = 'none';
       }
     }, 500);
   }
 
-  // Listeners
+  // Listeners de los targets
   target0.addEventListener('targetFound', onTargetFound);
   target1.addEventListener('targetFound', onTargetFound);
   target0.addEventListener('targetLost', onTargetLost);
   target1.addEventListener('targetLost', onTargetLost);
 
-  // Cambiar ambos modelos por la pokebola
+  // Cambiar entre pokebola y modelos principales
   changeBtn.addEventListener('click', () => {
-    model0.setAttribute('gltf-model', '#unifiedModel');
-    model1.setAttribute('gltf-model', '#unifiedModel');
+    if (!showingPokeball) {
+      // Mostrar pokebola
+      [model0, model1].forEach(m => {
+        m.setAttribute('gltf-model', '#unifiedModel');
+        m.setAttribute('rotation', '0 0 0');
+        m.setAttribute('scale', '0.2 0.2 0.2');
+        m.setAttribute('position', '0 -0.25 0');
+      });
+      changeBtn.textContent = "Cambiar a Pokémon";
+      showingPokeball = true;
+    } else {
+      // Volver a los modelos originales
+      model0.setAttribute('gltf-model', '#charmanderModel');
+      model0.setAttribute('rotation', '0 180 0');
+      model0.setAttribute('scale', '0.25 0.25 0.25');
+      model0.setAttribute('position', '0 -0.25 0');
+
+      model1.setAttribute('gltf-model', '#pikachuModel');
+      model1.setAttribute('rotation', '0 180 0');
+      model1.setAttribute('scale', '0.25 0.25 0.25');
+      model1.setAttribute('position', '0 -0.25 0');
+
+      changeBtn.textContent = "Cambiar a Pokebola";
+      showingPokeball = false;
+    }
   });
 });
 </script>
