@@ -93,10 +93,12 @@
             opacity: 0;
             transition: opacity 0.5s ease, transform 0.2s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
         }
         
         #changeBtn.visible {
             opacity: 1;
+            pointer-events: auto;
         }
         
         #changeBtn:hover {
@@ -133,6 +135,22 @@
             font-size: 0.9rem;
             color: rgba(255, 255, 255, 0.8);
         }
+
+        /* Indicador de carga */
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #4eff4e;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -143,7 +161,7 @@
         <div class="ar-container">
             <!-- Mensaje inicial -->
             <div id="scanOverlay">
-                <h2>Buscando objetivos...</h2>
+                <h2>Buscando objetivos... <span class="loader"></span></h2>
                 <p>Enfoca tu cámara hacia los objetivos para visualizar los modelos 3D</p>
             </div>
 
@@ -171,7 +189,7 @@
                 <a-entity id="target0" mindar-image-target="targetIndex: 0">
                     <a-gltf-model id="model0"
                         rotation="0 180 0"
-                        position="0 -0.25 0"
+                        position="0 0 1"
                         scale="1 1 1"
                         src="#charmanderModel"
                         animation-mixer="clip: *">
@@ -182,7 +200,7 @@
                 <a-entity id="target1" mindar-image-target="targetIndex: 1">
                     <a-gltf-model id="model1"
                         rotation="0 180 0"
-                        position="0 -0.25 0"
+                        position="0 0 1"
                         scale="1 1 1"
                         src="#pikachuModel"
                         animation-mixer="clip: *">
@@ -224,7 +242,20 @@
             // Verificar si el sistema MindAR está listo
             scene.addEventListener('renderstart', () => {
                 console.log('MindAR scene started');
+                // Forzar una comprobación inicial después de que la escena esté lista
+                setTimeout(checkTargetVisibility, 1000);
             });
+
+            // Función para comprobar la visibilidad de los targets
+            function checkTargetVisibility() {
+                if (target0 && target0.components['mindar-image-target']) {
+                    target0Visible = target0.components['mindar-image-target'].visible;
+                }
+                if (target1 && target1.components['mindar-image-target']) {
+                    target1Visible = target1.components['mindar-image-target'].visible;
+                }
+                updateUI();
+            }
 
             function updateUI() {
                 if (target0Visible || target1Visible) {
@@ -262,45 +293,56 @@
                 setTimeout(updateUI, 300);
             }
 
-            // Agregar event listeners
-            target0.addEventListener('targetFound', onTarget0Found);
-            target0.addEventListener('targetLost', onTarget0Lost);
-            target1.addEventListener('targetFound', onTarget1Found);
-            target1.addEventListener('targetLost', onTarget1Lost);
+            // Esperar a que los componentes estén cargados antes de agregar event listeners
+            scene.addEventListener('loaded', function() {
+                // Agregar event listeners con comprobación de existencia
+                if (target0) {
+                    target0.addEventListener('targetFound', onTarget0Found);
+                    target0.addEventListener('targetLost', onTarget0Lost);
+                }
+                
+                if (target1) {
+                    target1.addEventListener('targetFound', onTarget1Found);
+                    target1.addEventListener('targetLost', onTarget1Lost);
+                }
+                
+                // Comprobar periodicamente la visibilidad (como respaldo)
+                setInterval(checkTargetVisibility, 500);
+            });
 
             changeBtn.addEventListener('click', () => {
                 if (!showingPokeball) {
                     // Cambiar a pokebola
-                    if (target0Visible) {
+                    if (target0Visible && model0) {
                         model0.setAttribute('gltf-model', '#unifiedModel');
                         model0.setAttribute('rotation', '0 0 0');
-                        model0.setAttribute('scale', '0.2 0.2 0.2');
-                        model0.setAttribute('position', '0 -0.25 0');
+                        model0.setAttribute('scale', '1 1 1');
+                        model0.setAttribute('position', '0 0 1');
                     }
                     
-                    if (target1Visible) {
+                    if (target1Visible && model1) {
                         model1.setAttribute('gltf-model', '#unifiedModel');
                         model1.setAttribute('rotation', '0 0 0');
-                        model1.setAttribute('scale', '0.2 0.2 0.2');
-                        model1.setAttribute('position', '0 -0.25 0');
+                        model1.setAttribute('scale', '1 1 1');
+                        model1.setAttribute('position', '0 0 1');
                     }
                     
                     changeBtn.textContent = "Cambiar a Pokémon";
                     showingPokeball = true;
                 } else {
                     // Cambiar a Pokémon
-                    if (target0Visible) {
+                    if (target0Visible && model0) {
                         model0.setAttribute('gltf-model', '#charmanderModel');
                         model0.setAttribute('rotation', '0 180 0');
-                        model0.setAttribute('scale', '0.25 0.25 0.25');
-                        model0.setAttribute('position', '0 -0.25 0');
+                        model0.setAttribute('scale', '1 1 1');
+                        model0.setAttribute('position', '0 0 1');
                     }
                     
-                    if (target1Visible) {
+                    if (target1Visible && model1) {
                         model1.setAttribute('gltf-model', '#pikachuModel');
                         model1.setAttribute('rotation', '0 180 0');
-                        model1.setAttribute('scale', '0.25 0.25 0.25');
-                        model1.setAttribute('position', '0 -0.25 0');
+                        model1.setAttribute('scale', '1 1 1');
+                        model1.setAttribute('position', '0 0 1');
                     }
                     
                     changeBtn.textContent = "Cambiar a Pokebola";
