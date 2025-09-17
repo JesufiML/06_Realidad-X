@@ -17,11 +17,9 @@
         justify-content: center;
         align-items: center;
       }
-      
       #example-scanning-overlay.hidden {
         display: none;
       }
-
       #scanning-box {
         width: 250px;
         height: 250px;
@@ -30,7 +28,6 @@
         overflow: hidden;
         background: transparent;
       }
-
       #scanning-line {
         position: absolute;
         top: 0;
@@ -40,12 +37,10 @@
         background: rgba(0, 255, 0, 0.8);
         animation: scanning 2s linear infinite;
       }
-
       @keyframes scanning {
         0% { top: 0; }
         100% { top: 100%; }
       }
-
       #scan-text {
         position: absolute;
         top: 50%;
@@ -84,13 +79,20 @@
         <a-asset-item id="avatarModel3" src="./pokeball.glb"></a-asset-item>
       </a-assets>
 
-      <!-- Cámara -->
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+      <!-- Cámara con cursor para detectar clics -->
+      <a-camera position="0 0 0" look-controls="enabled: false">
+        <a-cursor 
+          raycaster="objects: .clickable" 
+          fuse="false" 
+          material="color: white; shader: flat">
+        </a-cursor>
+      </a-camera>
 
-      <!-- Target 1: Charmander -->
+      <!-- Target 1 -->
       <a-entity mindar-image-target="targetIndex: 0">
         <a-plane src="#card" position="0 0 0" height="0.552" width="1"></a-plane>
         <a-gltf-model id="model1" 
+          class="clickable"
           gltf-model="#avatarModel1" 
           position="0 0 1" scale="0.7 0.7 0.7" 
           rotation="0 180 0" 
@@ -98,10 +100,11 @@
         </a-gltf-model>
       </a-entity>
 
-      <!-- Target 2: Pikachu -->
+      <!-- Target 2 -->
       <a-entity mindar-image-target="targetIndex: 1">
         <a-plane src="#card" position="0 0 0" height="0.552" width="1"></a-plane>
         <a-gltf-model id="model2" 
+          class="clickable"
           gltf-model="#avatarModel2" 
           position="0 0 1" scale="0.7 0.7 0.7" 
           rotation="0 180 0" 
@@ -132,10 +135,10 @@
           }
         }
 
-        // 👉 Tap en cualquier parte de la pantalla alterna los modelos
-        window.addEventListener("touchstart", toggleModels);
+        // Escucha el evento de clic en cualquiera de los dos modelos
+        model1.addEventListener("click", toggleModels);
+        model2.addEventListener("click", toggleModels);
       });
     </script>
   </body>
 </html>
-
