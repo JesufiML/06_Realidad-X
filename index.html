@@ -1,282 +1,179 @@
-<html>
+<html> 
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
-      #example-scanning-overlay {
+      #message {
         position: absolute;
-        left: 0; top: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 9999;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-      #example-scanning-overlay.hidden { display: none; }
-      #scanning-box {
-        width: 250px; height: 250px;
-        border: 4px solid white;
-        position: relative;
-        overflow: hidden;
-        background: transparent;
-      }
-      #scanning-line {
-        position: absolute; top: 0; left: 0;
-        width: 100%; height: 4px;
-        background: rgba(0, 255, 0, 0.8);
-        animation: scanning 2s linear infinite;
-      }
-      @keyframes scanning { 0% { top: 0; } 100% { top: 100%; } }
-      #scan-text {
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        color: white;
-        font-size: 16px;
-        text-align: center;
-        padding: 5px;
-      }
-      .tap-hint {
-        position: absolute;
-        bottom: 20px;
+        top: 50%;
         left: 50%;
-        transform: translateX(-50%);
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.7);
         color: white;
-        background: rgba(0,0,0,0.7);
-        padding: 10px;
+        padding: 20px 30px;
         border-radius: 10px;
-        display: none;
-        z-index: 10000;
-        font-family: Arial, sans-serif;
+        font-family: sans-serif;
+        font-size: 18px;
+        text-align: center;
+        z-index: 999;
+        transition: opacity 0.5s ease;
       }
-      .debug-info {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background: rgba(0,0,0,0.8);
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-        font-family: monospace;
-        font-size: 12px;
-        z-index: 10001;
-        display: none;
+      #message.hidden {
+        opacity: 0;
+        pointer-events: none;
       }
     </style>
   </head>
-
   <body>
-    <!-- Overlay de escaneo -->
-    <div id="example-scanning-overlay">
-      <div id="scanning-box">
-        <p id="scan-text">Localiza los targets correctos para ver los modelos 3D</p>
-        <div id="scanning-line"></div>
-      </div>
-    </div>
+    <!-- ✅ Mensaje inicial -->
+    <div id="message">📷 Apunta tu cámara al marcador para comenzar</div>
 
-    <!-- Indicador de tap -->
-    <div id="tap-hint" class="tap-hint">Toca el modelo para cambiarlo</div>
-    
-    <!-- Información de debug -->
-    <div id="debug-info" class="debug-info"></div>
-
-    <!-- Escena MindAR -->
-    <a-scene 
-      mindar-image="uiScanning: #example-scanning-overlay; imageTargetSrc: ./targets.mind; maxTrack: 2"
-      color-space="sRGB" 
+    <a-scene
+      mindar-image="imageTargetSrc: ./targets.mind; autoStart: true;"
+      color-space="sRGB"
       renderer="colorManagement: true, physicallyCorrectLights"
-      vr-mode-ui="enabled: false" 
-      device-orientation-permission-ui="enabled: false">
-
-      <!-- Assets -->
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+      embedded
+    >
       <a-assets>
         <img id="card" src="FondoPokebola.jpg" />
-        <a-asset-item id="avatarModel1" src="./Charmander.glb"></a-asset-item>
-        <a-asset-item id="avatarModel2" src="./Pikachu.glb"></a-asset-item>
-        <a-asset-item id="avatarModel3" src="./pokeball.glb"></a-asset-item>
-        
-        <!-- Modelo de prueba alternativo para pokebola -->
-        <a-asset-item id="testPokeball" src="https://cdn.glitch.global/6d1t3t3a-9b4c-4c4c-9c4c-3c3c3c3c3c3c/pokeball.glb?v=1645634567890"></a-asset-item>
+        <a-asset-item id="charmanderModel" src="./Charmander.glb"></a-asset-item>
+        <a-asset-item id="pikachuModel" src="./Pikachu.glb"></a-asset-item>
+        <a-asset-item id="pokeballModel" src="./pokeball.glb"></a-asset-item>
       </a-assets>
 
-      <!-- Cámara -->
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+      <a-camera
+        position="0 0 0"
+        look-controls="enabled: false"
+        cursor="rayOrigin: mouse"
+        raycaster="objects: .clickable"
+      ></a-camera>
 
-      <!-- Target 1: Charmander -->
+      <!-- ✅ Target 0: Charmander/Pokebola -->
       <a-entity mindar-image-target="targetIndex: 0" id="target0">
-        <a-plane src="#card" position="0 0 0" height="0.552" width="1" 
-                 class="clickable" data-target-index="0"></a-plane>
-        <a-gltf-model id="model1"
-          gltf-model="#avatarModel1"
-          position="0 0.1 0.1" 
+        <a-plane src="#card" position="0 0 0" height="0.552" width="1"></a-plane>
+        
+        <!-- Modelos -->
+        <a-gltf-model
+          id="charmander"
+          gltf-model="#charmanderModel"
+          position="0 0.1 0.1"
           scale="0.7 0.7 0.7"
           rotation="0 180 0"
+          visible="true"
           animation-mixer
-          class="clickable" data-target-index="0">
-        </a-gltf-model>
+        ></a-gltf-model>
+
+        <a-gltf-model
+          id="pokeball1"
+          gltf-model="#pokeballModel"
+          position="0 0.1 0.1"
+          scale="0.4 0.4 0.4"
+          rotation="0 180 0"
+          visible="false"
+        ></a-gltf-model>
+
+        <!-- Detectores -->
+        <a-sphere class="clickable" position="0 0.25 0.1" radius="1" color="#000" opacity="0" transparent="true"></a-sphere>
+        <a-box class="clickable" position="0 0 0.1" scale="2 2 0.1" color="#000" opacity="0" transparent="true"></a-box>
+        <a-box class="clickable" position="0 0.5 0.1" scale="2 2 1" color="#000" opacity="0" transparent="true"></a-box>
+        <a-plane class="clickable" position="0 0 0.05" rotation="0 0 0" width="3" height="3" color="#000" opacity="0" transparent="true"></a-plane>
       </a-entity>
 
-      <!-- Target 2: Pikachu -->
+      <!-- ✅ Target 1: Pikachu/Pokebola -->
       <a-entity mindar-image-target="targetIndex: 1" id="target1">
-        <a-plane src="#card" position="0 0 0" height="0.552" width="1" 
-                 class="clickable" data-target-index="1"></a-plane>
-        <a-gltf-model id="model2"
-          gltf-model="#avatarModel2"
-          position="0 0.1 0.1" 
+        <a-plane src="#card" position="0 0 0" height="0.552" width="1"></a-plane>
+        
+        <!-- Modelos -->
+        <a-gltf-model
+          id="pikachu"
+          gltf-model="#pikachuModel"
+          position="0 0.1 0.1"
           scale="0.6 0.6 0.6"
           rotation="0 180 0"
+          visible="true"
           animation-mixer
-          class="clickable" data-target-index="1">
-        </a-gltf-model>
-      </a-entity>
-      
-      <!-- Modelo de prueba visible siempre para debug -->
-      <a-entity id="debug-pokeball" position="0 -1 0" scale="0.3 0.3 0.3" visible="false">
-        <a-gltf-model id="test-model" gltf-model="#avatarModel3"></a-gltf-model>
+        ></a-gltf-model>
+
+        <a-gltf-model
+          id="pokeball2"
+          gltf-model="#pokeballModel"
+          position="0 0.1 0.1"
+          scale="0.4 0.4 0.4"
+          rotation="0 180 0"
+          visible="false"
+        ></a-gltf-model>
+
+        <!-- Detectores -->
+        <a-sphere class="clickable" position="0 0.25 0.1" radius="1" color="#000" opacity="0" transparent="true"></a-sphere>
+        <a-box class="clickable" position="0 0 0.1" scale="2 2 0.1" color="#000" opacity="0" transparent="true"></a-box>
+        <a-box class="clickable" position="0 0.5 0.1" scale="2 2 1" color="#000" opacity="0" transparent="true"></a-box>
+        <a-plane class="clickable" position="0 0 0.05" rotation="0 0 0" width="3" height="3" color="#000" opacity="0" transparent="true"></a-plane>
       </a-entity>
     </a-scene>
 
-    <!-- Script para alternar modelos al tocar el target -->
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        const debugInfo = document.querySelector("#debug-info");
-        const debugPokeball = document.querySelector("#debug-pokeball");
-        debugInfo.style.display = "block";
-        
-        const targets = [
-          {
-            entity: document.querySelector("#target0"),
-            model: document.querySelector("#model1"),
-            original: "#avatarModel1",
-            originalScale: "0.7 0.7 0.7",
-            toggled: false,
-            visible: false,
-            name: "Charmander"
-          },
-          {
-            entity: document.querySelector("#target1"),
-            model: document.querySelector("#model2"),
-            original: "#avatarModel2",
-            originalScale: "0.6 0.6 0.6",
-            toggled: false,
-            visible: false,
-            name: "Pikachu"
-          }
-        ];
+        const charmander = document.querySelector("#charmander");
+        const pikachu = document.querySelector("#pikachu");
+        const pokeball1 = document.querySelector("#pokeball1");
+        const pokeball2 = document.querySelector("#pokeball2");
+        const target0 = document.querySelector("#target0");
+        const target1 = document.querySelector("#target1");
+        const message = document.querySelector("#message");
 
-        const tapHint = document.querySelector("#tap-hint");
-        const altModel = "#avatarModel3";
-        const pokeballScale = "0.4 0.4 0.4"; // Aumenté la escala
+        const detectors0 = target0.querySelectorAll(".clickable");
+        const detectors1 = target1.querySelectorAll(".clickable");
 
-        // Verificar si los assets se cargaron correctamente
-        const assets = document.querySelector('a-assets');
-        assets.addEventListener('loaded', () => {
-          debugInfo.innerHTML += "Assets cargados<br>";
-          console.log("Todos los assets cargados");
-          
-          // Verificar específicamente la pokebola
-          const pokeballAsset = document.querySelector('#avatarModel3');
-          if (pokeballAsset && pokeballAsset.hasLoaded) {
-            debugInfo.innerHTML += "Pokebola cargada ✓<br>";
-            console.log("Pokebola cargada correctamente");
-          } else {
-            debugInfo.innerHTML += "❌ Pokebola NO cargada<br>";
-            console.error("Pokebola no se cargó correctamente");
-          }
+        // Función para alternar modelos del target 0 (Charmander)
+        const toggleTarget0 = () => {
+          const showCharmander = !charmander.getAttribute("visible");
+          charmander.setAttribute("visible", showCharmander);
+          pokeball1.setAttribute("visible", !showCharmander);
+        };
+
+        // Función para alternar modelos del target 1 (Pikachu)
+        const toggleTarget1 = () => {
+          const showPikachu = !pikachu.getAttribute("visible");
+          pikachu.setAttribute("visible", showPikachu);
+          pokeball2.setAttribute("visible", !showPikachu);
+        };
+
+        // Asignar eventos a los detectores del target 0
+        detectors0.forEach((el) => {
+          el.addEventListener("click", toggleTarget0);
         });
 
-        // Configurar eventos para cada target
-        targets.forEach((target, index) => {
-          // Eventos de MindAR
-          target.entity.addEventListener("targetFound", () => {
-            target.visible = true;
-            tapHint.style.display = "block";
-            debugInfo.innerHTML += `${target.name} encontrado<br>`;
-            console.log("Target", target.name, "encontrado");
-          });
-          
-          target.entity.addEventListener("targetLost", () => {
-            target.visible = false;
-            debugInfo.innerHTML += `${target.name} perdido<br>`;
+        // Asignar eventos a los detectores del target 1
+        detectors1.forEach((el) => {
+          el.addEventListener("click", toggleTarget1);
+        });
+
+        // ✅ Oculta el mensaje cuando se detecta cualquier target
+        target0.addEventListener("targetFound", () => {
+          message.classList.add("hidden");
+        });
+
+        target1.addEventListener("targetFound", () => {
+          message.classList.add("hidden");
+        });
+
+        // (Opcional) Muestra el mensaje de nuevo si se pierden todos los targets
+        const checkAllTargetsLost = () => {
+          setTimeout(() => {
+            const target0Visible = target0.getAttribute("mindar-image-target").targetVisible;
+            const target1Visible = target1.getAttribute("mindar-image-target").targetVisible;
             
-            // Ocultar hint si ningún target está visible
-            if (!targets.some(t => t.visible)) {
-              tapHint.style.display = "none";
+            if (!target0Visible && !target1Visible) {
+              message.classList.remove("hidden");
             }
-          });
+          }, 100);
+        };
 
-          // Eventos para el modelo
-          target.model.addEventListener('model-loaded', () => {
-            debugInfo.innerHTML += `Modelo ${target.name} cargado<br>`;
-            console.log("Modelo cargado:", target.name);
-          });
-
-          // Hacer que tanto el plano como el modelo sean clickeables
-          const clickableElements = target.entity.querySelectorAll('.clickable');
-          clickableElements.forEach(element => {
-            element.addEventListener('click', () => {
-              if (target.visible) {
-                debugInfo.innerHTML += `Click en ${target.name}<br>`;
-                toggleModel(target);
-              }
-            });
-            
-            element.addEventListener('touchstart', (e) => {
-              if (target.visible) {
-                e.preventDefault();
-                debugInfo.innerHTML += `Touch en ${target.name}<br>`;
-                toggleModel(target);
-              }
-            });
-          });
-        });
-
-        // Función para alternar modelos
-        function toggleModel(target) {
-          target.toggled = !target.toggled;
-          const newModel = target.toggled ? altModel : target.original;
-          const newScale = target.toggled ? pokeballScale : target.originalScale;
-          
-          debugInfo.innerHTML += `Cambiando ${target.name} a: ${target.toggled ? 'Pokebola' : 'Original'}<br>`;
-          console.log("Cambiando modelo:", target.name, "->", target.toggled ? "Pokebola" : "Original");
-          
-          // Cambiar el modelo
-          target.model.setAttribute("gltf-model", newModel);
-          
-          // Esperar a que el nuevo modelo se cargue
-          target.model.addEventListener('model-loaded', function onLoad() {
-            target.model.removeEventListener('model-loaded', onLoad);
-            debugInfo.innerHTML += `Nuevo modelo cargado para ${target.name}<br>`;
-            
-            // Aplicar escala después de cargar
-            target.model.setAttribute("scale", newScale);
-            
-            // Pequeña animación
-            const currentScale = target.model.getAttribute("scale");
-            target.model.setAttribute("scale", {
-              x: currentScale.x * 0.8,
-              y: currentScale.y * 0.8,
-              z: currentScale.z * 0.8
-            });
-            
-            setTimeout(() => {
-              target.model.setAttribute("scale", newScale);
-            }, 150);
-          });
-        }
-
-        // Test: Mostrar pokebola en posición fija para debug
-        setTimeout(() => {
-          debugPokeball.setAttribute('visible', 'true');
-          debugInfo.innerHTML += "Mostrando pokebola de prueba<br>";
-        }, 3000);
-
-        // Log inicial
-        debugInfo.innerHTML += "Script AR iniciado<br>";
-        console.log("Script AR cargado correctamente");
+        target0.addEventListener("targetLost", checkAllTargetsLost);
+        target1.addEventListener("targetLost", checkAllTargetsLost);
       });
     </script>
   </body>
