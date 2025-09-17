@@ -26,8 +26,14 @@
     </style>
   </head>
   <body>
-    <!-- ✅ Mensaje inicial -->
-    <div id="message">📷 Apunta tu cámara al marcador para comenzar</div>
+ 
+       <!-- Overlay de escaneo -->
+    <div id="example-scanning-overlay">
+      <div id="scanning-box">
+        <p id="scan-text">Localiza los targets correctos para ver los modelos 3D</p>
+        <div id="scanning-line"></div>
+      </div>
+    </div>
 
     <a-scene
       mindar-image="imageTargetSrc: ./targets.mind; autoStart: true;"
@@ -59,7 +65,7 @@
         <a-gltf-model
           id="charmander"
           gltf-model="#charmanderModel"
-          position="0 0.1 0.1"
+          position="0 0 1"
           scale="0.7 0.7 0.7"
           rotation="0 180 0"
           visible="true"
@@ -69,8 +75,8 @@
         <a-gltf-model
           id="pokeball1"
           gltf-model="#pokeballModel"
-          position="0 0.1 0.1"
-          scale="0.4 0.4 0.4"
+          position="0 0 1"
+          scale="0.7 0.7 0.7"
           rotation="0 180 0"
           visible="false"
         ></a-gltf-model>
@@ -90,8 +96,8 @@
         <a-gltf-model
           id="pikachu"
           gltf-model="#pikachuModel"
-          position="0 0.1 0.1"
-          scale="0.6 0.6 0.6"
+          position="0 0 1"
+          scale="0.7 0.7 0.7"
           rotation="0 180 0"
           visible="true"
           animation-mixer
@@ -101,7 +107,7 @@
           id="pokeball2"
           gltf-model="#pokeballModel"
           position="0 0.1 0.1"
-          scale="0.4 0.4 0.4"
+          scale="0.7 0.7 0.7"
           rotation="0 180 0"
           visible="false"
         ></a-gltf-model>
