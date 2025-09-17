@@ -17,9 +17,7 @@
         justify-content: center;
         align-items: center;
       }
-      #example-scanning-overlay.hidden {
-        display: none;
-      }
+      #example-scanning-overlay.hidden { display: none; }
       #scanning-box {
         width: 250px;
         height: 250px;
@@ -30,10 +28,8 @@
       }
       #scanning-line {
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 4px;
+        top: 0; left: 0;
+        width: 100%; height: 4px;
         background: rgba(0, 255, 0, 0.8);
         animation: scanning 2s linear infinite;
       }
@@ -43,8 +39,7 @@
       }
       #scan-text {
         position: absolute;
-        top: 50%;
-        left: 50%;
+        top: 50%; left: 50%;
         transform: translate(-50%, -50%);
         color: white;
         font-size: 16px;
@@ -63,7 +58,6 @@
       </div>
     </div>
 
-    <!-- Escena -->
     <a-scene 
       mindar-image="uiScanning: #example-scanning-overlay; imageTargetSrc: ./targets.mind; maxTrack: 2" 
       color-space="sRGB" 
@@ -79,35 +73,36 @@
         <a-asset-item id="avatarModel3" src="./pokeball.glb"></a-asset-item>
       </a-assets>
 
-      <!-- Cámara con cursor para detectar clics -->
+      <!-- Cámara con cursor invisible -->
       <a-camera position="0 0 0" look-controls="enabled: false">
         <a-cursor 
+          id="cursor" 
           raycaster="objects: .clickable" 
           fuse="false" 
-          material="color: white; shader: flat">
+          material="opacity: 0; transparent: true">
         </a-cursor>
       </a-camera>
 
-      <!-- Target 1 -->
+      <!-- Target 1: Charmander -->
       <a-entity mindar-image-target="targetIndex: 0">
         <a-plane src="#card" position="0 0 0" height="0.552" width="1"></a-plane>
-        <a-gltf-model id="model1" 
+        <a-gltf-model id="model1"
           class="clickable"
-          gltf-model="#avatarModel1" 
-          position="0 0 1" scale="0.7 0.7 0.7" 
-          rotation="0 180 0" 
+          gltf-model="#avatarModel1"
+          position="0 0 1" scale="0.7 0.7 0.7"
+          rotation="0 180 0"
           animation-mixer>
         </a-gltf-model>
       </a-entity>
 
-      <!-- Target 2 -->
+      <!-- Target 2: Pikachu -->
       <a-entity mindar-image-target="targetIndex: 1">
         <a-plane src="#card" position="0 0 0" height="0.552" width="1"></a-plane>
-        <a-gltf-model id="model2" 
+        <a-gltf-model id="model2"
           class="clickable"
-          gltf-model="#avatarModel2" 
-          position="0 0 1" scale="0.7 0.7 0.7" 
-          rotation="0 180 0" 
+          gltf-model="#avatarModel2"
+          position="0 0 1" scale="0.7 0.7 0.7"
+          rotation="0 180 0"
           animation-mixer>
         </a-gltf-model>
       </a-entity>
@@ -126,16 +121,11 @@
 
         function toggleModels() {
           toggled = !toggled;
-          if (toggled) {
-            model1.setAttribute("gltf-model", alt);
-            model2.setAttribute("gltf-model", alt);
-          } else {
-            model1.setAttribute("gltf-model", original1);
-            model2.setAttribute("gltf-model", original2);
-          }
+          model1.setAttribute("gltf-model", toggled ? alt : original1);
+          model2.setAttribute("gltf-model", toggled ? alt : original2);
         }
 
-        // Escucha el evento de clic en cualquiera de los dos modelos
+        // Escucha el evento "click" del cursor de A-Frame (funciona en móvil)
         model1.addEventListener("click", toggleModels);
         model2.addEventListener("click", toggleModels);
       });
