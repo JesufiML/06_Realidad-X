@@ -1,44 +1,9 @@
-<html>
+<html> 
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
-      .scanning-overlay {
-        position: absolute;
-        left: 0; top: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 9999;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-      .scanning-overlay.hidden { display: none; }
-      .scanning-box {
-        width: 250px; height: 250px;
-        border: 4px solid white;
-        position: relative;
-        overflow: hidden;
-        background: transparent;
-      }
-      .scanning-line {
-        position: absolute; top: 0; left: 0;
-        width: 100%; height: 4px;
-        background: rgba(0, 255, 0, 0.8);
-        animation: scanning 2s linear infinite;
-      }
-      @keyframes scanning { 0% { top: 0; } 100% { top: 100%; } }
-      .scan-text {
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        color: white;
-        font-size: 16px;
-        text-align: center;
-        padding: 5px;
-      }
       #message {
         position: absolute;
         top: 50%;
@@ -51,7 +16,7 @@
         font-family: sans-serif;
         font-size: 18px;
         text-align: center;
-        z-index: 10000;
+        z-index: 999;
         transition: opacity 0.5s ease;
       }
       #message.hidden {
@@ -60,21 +25,12 @@
       }
     </style>
   </head>
-
   <body>
-    <!-- Overlay de escaneo personalizado -->
-    <div id="custom-scanning-overlay" class="scanning-overlay">
-      <div class="scanning-box">
-        <p class="scan-text">Localiza los targets correctos para ver los modelos 3D</p>
-        <div class="scanning-line"></div>
-      </div>
-    </div>
-
-    <!-- Mensaje inicial -->
-    <div id="message">📷 Apunta tu cámara al marcador para comenzar</div>
+    <!-- ✅ Mensaje inicial -->
+    <div id="message">Enfoca el target correcto para visualizar los modelos 3D</div>
 
     <a-scene
-      mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiScanning: #custom-scanning-overlay; uiLoading: no;"
+      mindar-image="imageTargetSrc: ./targets.mind; autoStart: true;"
       color-space="sRGB"
       renderer="colorManagement: true, physicallyCorrectLights"
       vr-mode-ui="enabled: false"
@@ -167,25 +123,9 @@
         const target0 = document.querySelector("#target0");
         const target1 = document.querySelector("#target1");
         const message = document.querySelector("#message");
-        const customScanningOverlay = document.querySelector("#custom-scanning-overlay");
 
         const detectors0 = target0.querySelectorAll(".clickable");
         const detectors1 = target1.querySelectorAll(".clickable");
-
-        // Variables para trackear estado de targets
-        let target0Found = false;
-        let target1Found = false;
-
-        // Función para actualizar visibilidad de overlays
-        function updateOverlays() {
-          if (target0Found || target1Found) {
-            message.classList.add("hidden");
-            customScanningOverlay.classList.add("hidden");
-          } else {
-            message.classList.remove("hidden");
-            customScanningOverlay.classList.remove("hidden");
-          }
-        }
 
         // Función para alternar modelos del target 0 (Charmander)
         const toggleTarget0 = () => {
@@ -204,57 +144,36 @@
         // Asignar eventos a los detectores del target 0
         detectors0.forEach((el) => {
           el.addEventListener("click", toggleTarget0);
-          el.addEventListener("touchstart", (e) => {
-            e.preventDefault();
-            toggleTarget0();
-          });
         });
 
         // Asignar eventos a los detectores del target 1
         detectors1.forEach((el) => {
           el.addEventListener("click", toggleTarget1);
-          el.addEventListener("touchstart", (e) => {
-            e.preventDefault();
-            toggleTarget1();
-          });
         });
 
-        // Eventos para target 0
+        // ✅ Oculta el mensaje cuando se detecta cualquier target
         target0.addEventListener("targetFound", () => {
-          target0Found = true;
-          updateOverlays();
-          console.log("Target 0 encontrado");
+          message.classList.add("hidden");
         });
 
-        target0.addEventListener("targetLost", () => {
-          target0Found = false;
-          updateOverlays();
-          console.log("Target 0 perdido");
-        });
-
-        // Eventos para target 1
         target1.addEventListener("targetFound", () => {
-          target1Found = true;
-          updateOverlays();
-          console.log("Target 1 encontrado");
+          message.classList.add("hidden");
         });
 
-        target1.addEventListener("targetLost", () => {
-          target1Found = false;
-          updateOverlays();
-          console.log("Target 1 perdido");
-        });
+        // (Opcional) Muestra el mensaje de nuevo si se pierden todos los targets
+        const checkAllTargetsLost = () => {
+          setTimeout(() => {
+            const target0Visible = target0.getAttribute("mindar-image-target").targetVisible;
+            const target1Visible = target1.getAttribute("mindar-image-target").targetVisible;
+            
+            if (!target0Visible && !target1Visible) {
+              message.classList.remove("hidden");
+            }
+          }, 100);
+        };
 
-        // También manejar el evento arReady de MindAR
-        const scene = document.querySelector('a-scene');
-        scene.addEventListener('arReady', (evt) => {
-          console.log("AR Ready", evt.detail);
-          // Ocultar overlays si ya hay targets visibles al cargar
-          updateOverlays();
-        });
-
-        // Forzar actualización inicial
-        updateOverlays();
+        target0.addEventListener("targetLost", checkAllTargetsLost);
+        target1.addEventListener("targetLost", checkAllTargetsLost);
       });
     </script>
   </body>
