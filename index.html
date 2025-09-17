@@ -71,7 +71,7 @@
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <!-- Target 1: Charmander -->
-      <a-entity mindar-image-target="targetIndex: 0">
+      <a-entity mindar-image-target="targetIndex: 0" id="target0">
         <a-plane src="#card" position="0 0 0" height="0.552" width="1"></a-plane>
         <a-gltf-model id="model1"
           gltf-model="#avatarModel1"
@@ -82,7 +82,7 @@
       </a-entity>
 
       <!-- Target 2: Pikachu -->
-      <a-entity mindar-image-target="targetIndex: 1">
+      <a-entity mindar-image-target="targetIndex: 1" id="target1">
         <a-plane src="#card" position="0 0 0" height="0.552" width="1"></a-plane>
         <a-gltf-model id="model2"
           gltf-model="#avatarModel2"
@@ -93,17 +93,19 @@
       </a-entity>
     </a-scene>
 
-    <!-- Script para alternar modelos individualmente -->
+    <!-- Script para alternar modelos al tocar el target -->
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        const models = [
+        const targets = [
           {
-            el: document.querySelector("#model1"),
+            entity: document.querySelector("#target0"),
+            model: document.querySelector("#model1"),
             original: "#avatarModel1",
             toggled: false
           },
           {
-            el: document.querySelector("#model2"),
+            entity: document.querySelector("#target1"),
+            model: document.querySelector("#model2"),
             original: "#avatarModel2",
             toggled: false
           }
@@ -111,39 +113,24 @@
 
         const alt = "#avatarModel3";
 
-        // Mantener estado de visibilidad de cada target
-        const targetStates = [false, false];
+        // Mantener visibilidad de cada target
+        const targetVisible = [false, false];
 
-        const targetEntities = [
-          document.querySelector('[mindar-image-target="targetIndex: 0"]'),
-          document.querySelector('[mindar-image-target="targetIndex: 1"]')
-        ];
+        targets.forEach((t, index) => {
+          t.entity.addEventListener("targetFound", () => targetVisible[index] = true);
+          t.entity.addEventListener("targetLost", () => targetVisible[index] = false);
 
-        // Eventos de MindAR para detectar cuando aparece o desaparece un target
-        targetEntities.forEach((target, index) => {
-          target.addEventListener("targetFound", () => targetStates[index] = true);
-          target.addEventListener("targetLost", () => targetStates[index] = false);
-        });
-
-        function toggleModel(index) {
-          if (!targetStates[index]) return; // Solo cambia si el target está visible
-          const model = models[index];
-          model.toggled = !model.toggled;
-          model.el.setAttribute("gltf-model", model.toggled ? alt : model.original);
-        }
-
-        // Detectar click o toque sobre los modelos
-        const scene = document.querySelector("a-scene");
-
-        scene.addEventListener("click", (event) => {
-          models.forEach((model, index) => {
-            if (event.target === model.el) toggleModel(index);
+          // Escuchar click o touch en el target (plano de fondo)
+          t.entity.addEventListener("click", () => {
+            if (!targetVisible[index]) return;
+            t.toggled = !t.toggled;
+            t.model.setAttribute("gltf-model", t.toggled ? alt : t.original);
           });
-        });
 
-        scene.addEventListener("touchstart", (event) => {
-          models.forEach((model, index) => {
-            if (event.target === model.el) toggleModel(index);
+          t.entity.addEventListener("touchstart", () => {
+            if (!targetVisible[index]) return;
+            t.toggled = !t.toggled;
+            t.model.setAttribute("gltf-model", t.toggled ? alt : t.original);
           });
         });
       });
