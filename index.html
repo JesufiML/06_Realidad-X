@@ -44,6 +44,17 @@
   0% { top: 0; }
   100% { top: 100%; }
 }
+
+      #scan-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 16px;
+      text-align: center;
+      padding: 5px;
+    }
     
     </style>
   </head>
@@ -52,6 +63,7 @@
     <!-- Overlay de escaneo -->
     <div id="example-scanning-overlay">
   <div id="scanning-box">
+    <p id="scan-text">Localiza los targets correctos para mostrar los modelos 3D</p>
     <div id="scanning-line"></div>
   </div>
 </div>
@@ -69,34 +81,62 @@
         <img id="card" src="FondoPokebola.jpg" />
         <a-asset-item id="avatarModel1" src="./Charmander.glb"></a-asset-item>
         <a-asset-item id="avatarModel2" src="./Pikachu.glb"></a-asset-item>
+        <a-asset-item id="avatarMode3" src="./pokeball.glb"></a-asset-item>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <!-- Target 0: Charmander -->
-      <a-entity mindar-image-target="targetIndex: 0">
-        <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
-        <a-gltf-model 
-          rotation="0 180 0" 
-          position="0 0 1" 
-          scale="0.7 0.7 0.7" 
-          src="#avatarModel1" 
-          animation-mixer>
-        </a-gltf-model>
-      </a-entity>
+      <!-- Target 1: Charmander -->
+<a-entity mindar-image-target="targetIndex: 0">
+  <a-plane src="#card" position="0 0 0" height="0.552" width="1"></a-plane>
+  <a-gltf-model id="model1" 
+    src="#avatarModel1" 
+    position="0 0 1" scale="0.7 0.7 0.7" 
+    rotation="0 180 0" 
+    class="clickable" animation-mixer>
+  </a-gltf-model>
+</a-entity>
 
-      <!-- Target 1: Pikachu -->
-      <a-entity mindar-image-target="targetIndex: 1">
-        <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
-        <a-gltf-model 
-          rotation="0 180 0" 
-          position="0 0 1" 
-          scale="0.7 0.7 0.7" 
-          src="#avatarModel2" 
-          animation-mixer>
-        </a-gltf-model>
-      </a-entity>
+<!-- Target 2: Pikachu -->
+<a-entity mindar-image-target="targetIndex: 1">
+  <a-plane src="#card" position="0 0 0" height="0.552" width="1"></a-plane>
+  <a-gltf-model id="model2" 
+    src="#avatarModel2" 
+    position="0 0 1" scale="0.7 0.7 0.7" 
+    rotation="0 180 0" 
+    class="clickable" animation-mixer>
+  </a-gltf-model>
+</a-entity>
+</a-scene>
 
-    </a-scene>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const model1 = document.querySelector("#model1");
+    const model2 = document.querySelector("#model2");
+
+    // Modelos originales
+    const original1 = "#avatarModel1";
+    const original2 = "#avatarModel2";
+
+    // Modelo alternativo común
+    const alt = "#avatarMode3";
+
+    let toggled = false;
+
+    function toggleModels() {
+      toggled = !toggled;
+      if (toggled) {
+        model1.setAttribute("gltf-model", alt);
+        model2.setAttribute("gltf-model", alt);
+      } else {
+        model1.setAttribute("gltf-model", original1);
+        model2.setAttribute("gltf-model", original2);
+      }
+    }
+
+    model1.addEventListener("click", toggleModels);
+    model2.addEventListener("click", toggleModels);
+  });
+</script>
   </body>
 </html>
