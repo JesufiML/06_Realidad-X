@@ -5,7 +5,7 @@
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
-      #example-scanning-overlay {
+      .scanning-overlay {
         position: absolute;
         left: 0; top: 0;
         width: 100%; height: 100%;
@@ -15,22 +15,22 @@
         justify-content: center;
         align-items: center;
       }
-      #example-scanning-overlay.hidden { display: none; }
-      #scanning-box {
+      .scanning-overlay.hidden { display: none; }
+      .scanning-box {
         width: 250px; height: 250px;
         border: 4px solid white;
         position: relative;
         overflow: hidden;
         background: transparent;
       }
-      #scanning-line {
+      .scanning-line {
         position: absolute; top: 0; left: 0;
         width: 100%; height: 4px;
         background: rgba(0, 255, 0, 0.8);
         animation: scanning 2s linear infinite;
       }
       @keyframes scanning { 0% { top: 0; } 100% { top: 100%; } }
-      #scan-text {
+      .scan-text {
         position: absolute;
         top: 50%; left: 50%;
         transform: translate(-50%, -50%);
@@ -62,11 +62,11 @@
   </head>
 
   <body>
-    <!-- Overlay de escaneo -->
-    <div id="example-scanning-overlay">
-      <div id="scanning-box">
-        <p id="scan-text">Localiza los targets correctos para ver los modelos 3D</p>
-        <div id="scanning-line"></div>
+    <!-- Overlay de escaneo personalizado -->
+    <div id="custom-scanning-overlay" class="scanning-overlay">
+      <div class="scanning-box">
+        <p class="scan-text">Localiza los targets correctos para ver los modelos 3D</p>
+        <div class="scanning-line"></div>
       </div>
     </div>
 
@@ -74,7 +74,7 @@
     <div id="message">📷 Apunta tu cámara al marcador para comenzar</div>
 
     <a-scene
-      mindar-image="uiScanning: #example-scanning-overlay; imageTargetSrc: ./targets.mind; autoStart: true;"
+      mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiScanning: #custom-scanning-overlay; uiLoading: no;"
       color-space="sRGB"
       renderer="colorManagement: true, physicallyCorrectLights"
       vr-mode-ui="enabled: false"
@@ -167,10 +167,25 @@
         const target0 = document.querySelector("#target0");
         const target1 = document.querySelector("#target1");
         const message = document.querySelector("#message");
-        const scanningOverlay = document.querySelector("#example-scanning-overlay");
+        const customScanningOverlay = document.querySelector("#custom-scanning-overlay");
 
         const detectors0 = target0.querySelectorAll(".clickable");
         const detectors1 = target1.querySelectorAll(".clickable");
+
+        // Variables para trackear estado de targets
+        let target0Found = false;
+        let target1Found = false;
+
+        // Función para actualizar visibilidad de overlays
+        function updateOverlays() {
+          if (target0Found || target1Found) {
+            message.classList.add("hidden");
+            customScanningOverlay.classList.add("hidden");
+          } else {
+            message.classList.remove("hidden");
+            customScanningOverlay.classList.remove("hidden");
+          }
+        }
 
         // Función para alternar modelos del target 0 (Charmander)
         const toggleTarget0 = () => {
@@ -189,48 +204,57 @@
         // Asignar eventos a los detectores del target 0
         detectors0.forEach((el) => {
           el.addEventListener("click", toggleTarget0);
-          el.addEventListener("touchstart", toggleTarget0);
+          el.addEventListener("touchstart", (e) => {
+            e.preventDefault();
+            toggleTarget0();
+          });
         });
 
         // Asignar eventos a los detectores del target 1
         detectors1.forEach((el) => {
           el.addEventListener("click", toggleTarget1);
-          el.addEventListener("touchstart", toggleTarget1);
+          el.addEventListener("touchstart", (e) => {
+            e.preventDefault();
+            toggleTarget1();
+          });
         });
 
-        // ✅ Oculta el mensaje y overlay cuando se detecta cualquier target
+        // Eventos para target 0
         target0.addEventListener("targetFound", () => {
-          message.classList.add("hidden");
-          scanningOverlay.classList.add("hidden");
+          target0Found = true;
+          updateOverlays();
+          console.log("Target 0 encontrado");
         });
 
+        target0.addEventListener("targetLost", () => {
+          target0Found = false;
+          updateOverlays();
+          console.log("Target 0 perdido");
+        });
+
+        // Eventos para target 1
         target1.addEventListener("targetFound", () => {
-          message.classList.add("hidden");
-          scanningOverlay.classList.add("hidden");
+          target1Found = true;
+          updateOverlays();
+          console.log("Target 1 encontrado");
         });
 
-        // Muestra el mensaje de nuevo si se pierden todos los targets
-        const checkAllTargetsLost = () => {
-          setTimeout(() => {
-            // Verificar visibilidad de targets usando eventos nativos de MindAR
-            const isTarget0Visible = target0.components['mindar-image-target'].targetVisible;
-            const isTarget1Visible = target1.components['mindar-image-target'].targetVisible;
-            
-            if (!isTarget0Visible && !isTarget1Visible) {
-              message.classList.remove("hidden");
-              scanningOverlay.classList.remove("hidden");
-            }
-          }, 100);
-        };
+        target1.addEventListener("targetLost", () => {
+          target1Found = false;
+          updateOverlays();
+          console.log("Target 1 perdido");
+        });
 
-        target0.addEventListener("targetLost", checkAllTargetsLost);
-        target1.addEventListener("targetLost", checkAllTargetsLost);
-
-        // También manejar el overlay de escaneo de MindAR
+        // También manejar el evento arReady de MindAR
         const scene = document.querySelector('a-scene');
-        scene.addEventListener('arReady', () => {
-          console.log("AR Ready");
+        scene.addEventListener('arReady', (evt) => {
+          console.log("AR Ready", evt.detail);
+          // Ocultar overlays si ya hay targets visibles al cargar
+          updateOverlays();
         });
+
+        // Forzar actualización inicial
+        updateOverlays();
       });
     </script>
   </body>
