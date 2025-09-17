@@ -1,10 +1,15 @@
+<!DOCTYPE html>
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
   <style>
-    body { margin: 0; overflow: hidden; }
+    body { 
+      margin: 0; 
+      overflow: hidden; 
+      font-family: 'Arial', sans-serif;
+    }
 
     /* Mensaje inicial */
     #scanOverlay {
@@ -16,12 +21,15 @@
       padding: 12px 20px;
       border-radius: 10px;
       color: #0f0;
-      font-family: Arial, sans-serif;
       font-size: 16px;
       text-align: center;
-      z-index: 5; /* encima de la cámara */
+      z-index: 10;
+      transition: opacity 0.3s ease;
     }
-    #scanOverlay.hidden { display: none; }
+    #scanOverlay.hidden { 
+      opacity: 0;
+      pointer-events: none;
+    }
 
     /* Botón cambiar modelo */
     #changeBtn {
@@ -36,8 +44,14 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      z-index: 5;
-      display: none; /* oculto al inicio */
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    #changeBtn.visible {
+      opacity: 1;
+      pointer-events: auto;
     }
   </style>
 </head>
@@ -50,7 +64,7 @@
   <button id="changeBtn">Cambiar a Pokebola</button>
 
   <a-scene 
-      mindar-image="imageTargetSrc: targets.mind; maxTrack: 2; autoStart: true;"
+      mindar-image="imageTargetSrc: https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.mind; maxTrack: 2; autoStart: true;"
       embedded
       color-space="sRGB"
       renderer="colorManagement: true, physicallyCorrectLights, alpha: true"
@@ -58,9 +72,10 @@
       device-orientation-permission-ui="enabled: false">
 
     <a-assets>
-      <a-asset-item id="charmanderModel" src="Charmander.glb"></a-asset-item>
-      <a-asset-item id="pikachuModel" src="Pikachu.glb"></a-asset-item>
-      <a-asset-item id="unifiedModel" src="pokeball.glb"></a-asset-item>
+      <!-- Modelos de ejemplo (reemplazar con tus propios modelos) -->
+      <a-asset-item id="charmanderModel" src="https://cdn.glitch.global/5c4c8ee4-4982-4f64-8c56-3e612f83ad4f/Charmander.glb?v=1708452310554"></a-asset-item>
+      <a-asset-item id="pikachuModel" src="https://cdn.glitch.global/5c4c8ee4-4982-4f64-8c56-3e612f83ad4f/Pikachu.glb?v=1708452309519"></a-asset-item>
+      <a-asset-item id="unifiedModel" src="https://cdn.glitch.global/5c4c8ee4-4982-4f64-8c56-3e612f83ad4f/pokeball.glb?v=1708452311023"></a-asset-item>
     </a-assets>
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -72,7 +87,7 @@
         position="0 -0.25 0"
         scale="0.25 0.25 0.25"
         src="#charmanderModel"
-        animation-mixer></a-gltf-model>
+        animation-mixer="clip: *"></a-gltf-model>
     </a-entity>
 
     <!-- Target 1 (Pikachu) -->
@@ -82,7 +97,7 @@
         position="0 -0.25 0"
         scale="0.25 0.25 0.25"
         src="#pikachuModel"
-        animation-mixer></a-gltf-model>
+        animation-mixer="clip: *"></a-gltf-model>
     </a-entity>
 
   </a-scene>
@@ -95,50 +110,90 @@ document.addEventListener("DOMContentLoaded", () => {
   const model1 = document.querySelector('#model1');
   const target0 = document.querySelector('#target0');
   const target1 = document.querySelector('#target1');
+  const scene = document.querySelector('a-scene');
 
   let showingPokeball = false;
+  let target0Visible = false;
+  let target1Visible = false;
 
-  function onTargetFound() {
-    scanOverlay.classList.add('hidden');
-    changeBtn.style.display = 'block';
+  // Verificar si el sistema MindAR está listo
+  scene.addEventListener('renderstart', () => {
+    console.log('MindAR scene started');
+  });
+
+  function updateUI() {
+    if (target0Visible || target1Visible) {
+      scanOverlay.classList.add('hidden');
+      changeBtn.classList.add('visible');
+    } else {
+      scanOverlay.classList.remove('hidden');
+      changeBtn.classList.remove('visible');
+    }
   }
 
-  function onTargetLost() {
-    setTimeout(() => {
-      if (!target0.components["mindar-image-target"].visible &&
-          !target1.components["mindar-image-target"].visible) {
-        scanOverlay.classList.remove('hidden');
-        changeBtn.style.display = 'none';
-      }
-    }, 500);
+  function onTarget0Found() {
+    target0Visible = true;
+    updateUI();
   }
 
-  target0.addEventListener('targetFound', onTargetFound);
-  target1.addEventListener('targetFound', onTargetFound);
-  target0.addEventListener('targetLost', onTargetLost);
-  target1.addEventListener('targetLost', onTargetLost);
+  function onTarget0Lost() {
+    target0Visible = false;
+    // Pequeño retraso para evitar parpadeo
+    setTimeout(updateUI, 300);
+  }
+
+  function onTarget1Found() {
+    target1Visible = true;
+    updateUI();
+  }
+
+  function onTarget1Lost() {
+    target1Visible = false;
+    // Pequeño retraso para evitar parpadeo
+    setTimeout(updateUI, 300);
+  }
+
+  // Agregar event listeners
+  target0.addEventListener('targetFound', onTarget0Found);
+  target0.addEventListener('targetLost', onTarget0Lost);
+  target1.addEventListener('targetFound', onTarget1Found);
+  target1.addEventListener('targetLost', onTarget1Lost);
 
   changeBtn.addEventListener('click', () => {
     if (!showingPokeball) {
-      [model0, model1].forEach(m => {
-        m.setAttribute('gltf-model', '#unifiedModel');
-        m.setAttribute('rotation', '0 0 0');
-        m.setAttribute('scale', '0.2 0.2 0.2');
-        m.setAttribute('position', '0 -0.25 0');
-      });
+      // Cambiar a pokebola
+      if (target0Visible) {
+        model0.setAttribute('gltf-model', '#unifiedModel');
+        model0.setAttribute('rotation', '0 0 0');
+        model0.setAttribute('scale', '0.2 0.2 0.2');
+        model0.setAttribute('position', '0 -0.25 0');
+      }
+      
+      if (target1Visible) {
+        model1.setAttribute('gltf-model', '#unifiedModel');
+        model1.setAttribute('rotation', '0 0 0');
+        model1.setAttribute('scale', '0.2 0.2 0.2');
+        model1.setAttribute('position', '0 -0.25 0');
+      }
+      
       changeBtn.textContent = "Cambiar a Pokémon";
       showingPokeball = true;
     } else {
-      model0.setAttribute('gltf-model', '#charmanderModel');
-      model0.setAttribute('rotation', '0 180 0');
-      model0.setAttribute('scale', '0.25 0.25 0.25');
-      model0.setAttribute('position', '0 -0.25 0');
-
-      model1.setAttribute('gltf-model', '#pikachuModel');
-      model1.setAttribute('rotation', '0 180 0');
-      model1.setAttribute('scale', '0.25 0.25 0.25');
-      model1.setAttribute('position', '0 -0.25 0');
-
+      // Cambiar a Pokémon
+      if (target0Visible) {
+        model0.setAttribute('gltf-model', '#charmanderModel');
+        model0.setAttribute('rotation', '0 180 0');
+        model0.setAttribute('scale', '0.25 0.25 0.25');
+        model0.setAttribute('position', '0 -0.25 0');
+      }
+      
+      if (target1Visible) {
+        model1.setAttribute('gltf-model', '#pikachuModel');
+        model1.setAttribute('rotation', '0 180 0');
+        model1.setAttribute('scale', '0.25 0.25 0.25');
+        model1.setAttribute('position', '0 -0.25 0');
+      }
+      
       changeBtn.textContent = "Cambiar a Pokebola";
       showingPokeball = false;
     }
