@@ -1,331 +1,144 @@
-<!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon AR</title>
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Alice&display=swap" rel="stylesheet">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Alice', serif;
-            background: linear-gradient(to bottom, #0a2e0a, #051b05);
-            color: white;
-            overflow: hidden;
-            height: 100vh;
-        }
-        
-        #message {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.85);
-            color: white;
-            padding: 25px 35px;
-            border-radius: 15px;
-            font-family: 'Alice', serif;
-            font-size: 22px;
-            text-align: center;
-            z-index: 999;
-            transition: opacity 0.5s ease;
-            border: 2px solid #4CAF50;
-            box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
-            max-width: 80%;
-            backdrop-filter: blur(5px);
-        }
-        
-        #message.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        .controls {
-            position: fixed;
-            bottom: 15px;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            z-index: 1000;
-        }
-        
-        button {
-            padding: 10px 20px;
-            background: rgba(20, 80, 20, 0.8);
-            border: 2px solid rgba(76, 175, 80, 0.8);
-            border-radius: 25px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 16px;
-            font-family: 'Alice', serif;
-            box-shadow: 0 0 12px rgba(76, 175, 80, 0.5);
-        }
-        
-        button:hover {
-            background: rgba(76, 175, 80, 0.6);
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(76, 175, 80, 0.7);
-        }
-        
-        .detection-feedback {
-            position: fixed;
-            top: 20px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            font-size: 22px;
-            font-weight: bold;
-            opacity: 0;
-            transition: opacity 0.5s;
-            z-index: 1000;
-            color: #4CAF50;
-            text-shadow: 1px 1px 5px #000;
-            font-family: 'Alice', serif;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 12px;
-            border-bottom: 2px solid #4CAF50;
-            backdrop-filter: blur(5px);
-        }
-        
-        .detection-feedback.visible {
-            opacity: 1;
-        }
-        
-        .instructions {
-            position: fixed;
-            bottom: 80px;
-            width: 100%;
-            text-align: center;
-            font-size: 16px;
-            color: #ddd;
-            z-index: 1000;
-            font-family: 'Alice', serif;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 8px;
-            border-top: 1px solid #4CAF50;
-            border-bottom: 1px solid #4CAF50;
-            backdrop-filter: blur(5px);
-        }
-        
-        .model-selector {
-            position: fixed;
-            top: 15px;
-            right: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid #4CAF50;
-            box-shadow: 0 0 12px rgba(76, 175, 80, 0.5);
-            backdrop-filter: blur(5px);
-        }
-        
-        .model-btn {
-            padding: 6px 12px;
-            background: rgba(20, 80, 20, 0.6);
-            border: 1px solid #4CAF50;
-            border-radius: 6px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: 'Alice', serif;
-            text-align: center;
-            font-size: 14px;
-        }
-        
-        .model-btn:hover, .model-btn.active {
-            background: rgba(76, 175, 80, 0.4);
-            transform: scale(1.05);
-        }
-        
-        .model-btn.charmander {
-            color: #FF6B00;
-        }
-        
-        .model-btn.pikachu {
-            color: #FFEA00;
-        }
-        
-        .model-btn.pokeball {
-            color: #FF2121;
-        }
-        
-        @media (max-width: 768px) {
-            .model-selector {
-                top: auto;
-                bottom: 140px;
-                right: 10px;
-                left: 10px;
-                flex-direction: row;
-                justify-content: center;
-            }
-            
-            #message {
-                font-size: 18px;
-                padding: 20px 25px;
-            }
-            
-            button {
-                padding: 8px 16px;
-                font-size: 14px;
-            }
-        }
-        
-        .title {
-            font-family: 'Alice', serif;
-            font-size: 28px;
-            color: #4CAF50;
-            text-align: center;
-            margin: 15px 0;
-            text-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
-            width: 100%;
-            padding: 8px;
-            position: relative;
-            z-index: 100;
-        }
-    </style>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+<style>
+  /* Interfaz personalizada */
+  #infoBox {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    background-color: rgba(0,0,0,0.7);
+    color: #0f0;
+    border: 2px solid #0f0;
+    border-radius: 10px;
+    font-family: Arial, sans-serif;
+  }
+  button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  #scanOverlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0,0,0,0.7);
+    padding: 15px 30px;
+    border-radius: 10px;
+    color: #0f0;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+  }
+  #scanOverlay.hidden { display: none; }
+</style>
 </head>
+
 <body>
-    <div class="title">Pokémon AR Experience</div>
-    
-    <!-- Mensaje inicial para ajustar la cámara -->
-    <div id="message">📷 Enfoca el icono para comenzar</div>
-    
-    <div class="detection-feedback" id="detection-feedback">¡Pokémon detectado!</div>
-    
-    <div class="instructions">Haz clic en el Pokémon para cambiarlo</div>
-    
-    <div class="model-selector" id="model-selector">
-        <div class="model-btn charmander active" data-model="charmander">Charmander</div>
-        <div class="model-btn pikachu" data-model="pikachu">Pikachu</div>
-        <div class="model-btn pokeball" data-model="pokeball">Pokeball</div>
-    </div>
-    
-    <div class="controls">
-        <button id="start-button">Iniciar RA</button>
-        <button id="stop-button">Detener RA</button>
-    </div>
+  <!-- Overlay de escaneo -->
+  <div id="scanOverlay">Escanea los targets correctos para visualizar los modelos 3D</div>
 
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind; autoStart: false;" 
-              color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" 
-              vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-        
-        <a-assets>
-            <!-- Modelos 3D -->
-            <a-asset-item id="charmanderModel" src="./Charmander.glb"></a-asset-item>
-            <a-asset-item id="pikachuModel" src="./Pikachu.glb"></a-asset-item>
-            <a-asset-item id="pokeballModel" src="./pokeball.glb"></a-asset-item>
-            
-            <!-- Fondo único -->
-            <img id="background" src="./FondoPokebola.jpg" crossorigin="anonymous">
-        </a-assets>
+  <!-- Controles AR -->
+  <div id="infoBox">
+    AR Multi-Target MindAR
+    <button id="changeModelBtn">Cambiar Modelo</button>
+    <button id="startBtn">Start</button>
+    <button id="pauseBtn">Pause</button>
+    <button id="pauseKeepBtn">Pause (keep video)</button>
+    <button id="unpauseBtn">UnPause</button>
+    <button id="stopBtn">Stop</button>
+  </div>
 
-        <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" 
-                  raycaster="objects: .clickable"></a-camera>
+  <a-scene mindar-image="
+      imageTargetSrc: targets.mind;
+      maxTrack: 2;
+      uiScanning: #scanOverlay;
+      uiLoading: no;
+      uiError: no;
+      autoStart: false;"
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false">
 
-        <!-- Contenedor único para el Pokémon -->
-        <a-entity mindar-image-target="targetIndex: 0" id="target-entity">
-            <!-- Fondo (más pequeño y detrás de los modelos) -->
-            <a-image id="background-image" src="#background" position="0 -0.5 -1" scale="1.2 1.2 1.2" width="1.2" height="1.2"></a-image>
-            
-            <!-- Touch plane para hacer clic -->
-            <a-plane id="touch-plane" class="clickable" position="0 -0.5 0" rotation="0 0 0" width="2.5" height="2.5" color="#000" opacity="0" transparent="true"></a-plane>
-            
-            <a-entity id="pokemon-container" position="0 -0.5 0">
-                <!-- Charmander (inicialmente visible) -->
-                <a-entity id="charmander-object" visible="true" position="0 -0.4 0" scale="0.10 0.10 0.10">
-                    <a-gltf-model src="#charmanderModel" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000"></a-gltf-model>
-                    <!-- Nombre encima del modelo -->
-                    <a-text value="Charmander" align="center" position="0 1 0" color="#FF6B00" width="8" scale="3 3 3" font="alice"></a-text>
-                </a-entity>
-                
-                <!-- Pikachu (inicialmente oculto) -->
-                <a-entity id="pikachu-object" visible="false" position="0 0 0" scale="0.002 0.002 0.002">
-                    <a-gltf-model src="#pikachuModel" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000"></a-gltf-model>
-                    <!-- Nombre encima del modelo -->
-                    <a-text value="Pikachu" align="center" position="0 1 0" color="#FFEA00" width="8" scale="3 3 3" font="alice"></a-text>
-                </a-entity>
-                
-                <!-- Pokeball (inicialmente oculto) -->
-                <a-entity id="pokeball-object" visible="false" position="0 0 0" scale="0.0025 0.0025 0.0025">
-                    <a-gltf-model src="#pokeballModel" animation="property: rotation; to: 0 360 0; loop: true; dur: 8000"></a-gltf-model>
-                    <!-- Nombre encima del modelo -->
-                    <a-text value="Pokeball" align="center" position="0 1 0" color="#FF2121" width="8" scale="3 3 3" font="alice"></a-text>
-                </a-entity>
-            </a-entity>
-        </a-entity>
+    <a-assets>
+      <a-asset-item id="charmanderModel" src="Charmander.glb"></a-asset-item>
+      <a-asset-item id="pikachuModel" src="Pikachu.glb"></a-asset-item>
+      <a-asset-item id="unifiedModel" src="pokeball.glb"></a-asset-item>
+      <img id="backgroundTexture" src="FondoPokebola.jpg" />
+    </a-assets>
 
-        <!-- Interfaz A-Frame simplificada -->
-        <a-entity id="ui-container" position="0 0 0">
-            <!-- Panel de información (verde) -->
-            <a-plane id="info-panel" position="0 -1.8 0" width="2.2" height="0.5" color="#144014" opacity="0.9" rotation="0 0 0">
-                <a-text value="Pokémon AR" align="center" position="0 0 0.01" color="#4CAF50" width="3.5" font="alice"></a-text>
-            </a-plane>
-        </a-entity>
-    </a-scene>
+    <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="objects: .clickable"></a-camera>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Configuración de controles
-            const startButton = document.querySelector('#start-button');
-            const stopButton = document.querySelector('#stop-button');
-            const detectionFeedback = document.querySelector('#detection-feedback');
-            const modelSelector = document.querySelector('#model-selector');
-            const modelButtons = document.querySelectorAll('.model-btn');
-            const message = document.querySelector('#message');
-            const targetEntity = document.querySelector('#target-entity');
-            const touchPlane = document.querySelector('#touch-plane');
-            
-            // Referencias a los modelos
-            const charmanderObject = document.querySelector('#charmander-object');
-            const pikachuObject = document.querySelector('#pikachu-object');
-            const pokeballObject = document.querySelector('#pokeball-object');
-            
-            // Modelo actual
-            let currentModel = 'charmander';
-            
-            // Ocultar mensaje cuando se detecta el target
-            targetEntity.addEventListener('targetFound', event => {
-                console.log('Target encontrado');
-                message.classList.add('hidden');
-                detectionFeedback.textContent = '¡Pokémon detectado!';
-                detectionFeedback.classList.add('visible');
-                
-                // Ocultar el feedback después de 2 segundos
-                setTimeout(() => {
-                    detectionFeedback.classList.remove('visible');
-                }, 2000);
-            });
-            
-            // Mostrar mensaje cuando se pierde el target
-            targetEntity.addEventListener('targetLost', event => {
-                console.log('Target perdido');
-                message.classList.remove('hidden');
-            });
-            
-            const sceneEl = document.querySelector('a-scene');
-            let arSystem;
-            
-            sceneEl.addEventListener('loaded', function() {
-                arSystem = sceneEl.systems["mindar-image-system"];
-            });
-            
-            startButton.addEventListener('click', () => {
-                arSystem.start();
-                modelSelector.style.display = 'flex';
-                message.textContent = "Buscando objetivo...";
-            });
-            
-            stopButton.addEventListener('click', () => {
-                arSystem.stop();
+    <!-- Target 0 -->
+    <a-entity id="target0" mindar-image-target="targetIndex: 0">
+      <a-plane src="#backgroundTexture" rotation="-90 0 0" height="1" width="1" position="0 0 0"></a-plane>
+      <a-gltf-model id="model0" class="clickable" rotation="0 0 0" position="0 -0.25 0" scale="0.05 0.05 0.05" src="#charmanderModel" animation-mixer></a-gltf-model>
+    </a-entity>
+
+    <!-- Target 1 -->
+    <a-entity id="target1" mindar-image-target="targetIndex: 1">
+      <a-plane src="#backgroundTexture" rotation="-90 0 0" height="1" width="1" position="0 0 0"></a-plane>
+      <a-gltf-model id="model1" class="clickable" rotation="0 0 0" position="0 -0.25 0" scale="0.05 0.05 0.05" src="#pikachuModel" animation-mixer></a-gltf-model>
+    </a-entity>
+
+  </a-scene>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const sceneEl = document.querySelector('a-scene');
+  const arSystem = sceneEl.systems["mindar-image-system"];
+
+  const model0 = document.querySelector('#model0');
+  const model1 = document.querySelector('#model1');
+
+  const scanOverlay = document.querySelector('#scanOverlay');
+  const changeBtn = document.querySelector('#changeModelBtn');
+  const startBtn = document.querySelector('#startBtn');
+  const stopBtn = document.querySelector('#stopBtn');
+  const pauseBtn = document.querySelector('#pauseBtn');
+  const pauseKeepBtn = document.querySelector('#pauseKeepBtn');
+  const unpauseBtn = document.querySelector('#unpauseBtn');
+
+  const target0 = document.querySelector('#target0');
+  const target1 = document.querySelector('#target1');
+
+  // Función para cambiar ambos modelos al unificado
+  function cambiarModelos() {
+    model0.setAttribute('gltf-model', '#unifiedModel');
+    model1.setAttribute('gltf-model', '#unifiedModel');
+  }
+
+  // Eventos de botón
+  changeBtn.addEventListener('click', cambiarModelos);
+  startBtn.addEventListener('click', () => arSystem.start());
+  stopBtn.addEventListener('click', () => arSystem.stop());
+  pauseBtn.addEventListener('click', () => arSystem.pause());
+  pauseKeepBtn.addEventListener('click', () => arSystem.pause(true));
+  unpauseBtn.addEventListener('click', () => arSystem.unpause());
+
+  // Eventos de clic sobre los modelos
+  model0.addEventListener('click', cambiarModelos);
+  model1.addEventListener('click', cambiarModelos);
+
+  // Mostrar/ocultar overlay según target detectado
+  target0.addEventListener('targetFound', () => scanOverlay.classList.add('hidden'));
+  target1.addEventListener('targetFound', () => scanOverlay.classList.add('hidden'));
+  target0.addEventListener('targetLost', () => scanOverlay.classList.remove('hidden'));
+  target1.addEventListener('targetLost', () => scanOverlay.classList.remove('hidden'));
+
+  // Logging de detección
+  target0.addEventListener('targetFound', () => console.log('Target 0 encontrado'));
+  target1.addEventListener('targetFound', () => console.log('Target 1 encontrado'));
+  target0.addEventListener('targetLost', () => console.log('Target 0 perdido'));
+  target1.addEventListener('targetLost', () => console.log('Target 1 perdido'));
+});
+</script>
+
+</body>
+</html>
