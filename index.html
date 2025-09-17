@@ -7,10 +7,8 @@
     <style>
       #example-scanning-overlay {
         position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
+        left: 0; top: 0;
+        width: 100%; height: 100%;
         background: rgba(0,0,0,0.5);
         z-index: 9999;
         display: flex;
@@ -19,24 +17,19 @@
       }
       #example-scanning-overlay.hidden { display: none; }
       #scanning-box {
-        width: 250px;
-        height: 250px;
+        width: 250px; height: 250px;
         border: 4px solid white;
         position: relative;
         overflow: hidden;
         background: transparent;
       }
       #scanning-line {
-        position: absolute;
-        top: 0; left: 0;
+        position: absolute; top: 0; left: 0;
         width: 100%; height: 4px;
         background: rgba(0, 255, 0, 0.8);
         animation: scanning 2s linear infinite;
       }
-      @keyframes scanning {
-        0% { top: 0; }
-        100% { top: 100%; }
-      }
+      @keyframes scanning { 0% { top: 0; } 100% { top: 100%; } }
       #scan-text {
         position: absolute;
         top: 50%; left: 50%;
@@ -58,10 +51,11 @@
       </div>
     </div>
 
+    <!-- Escena MindAR -->
     <a-scene 
-      mindar-image="uiScanning: #example-scanning-overlay; imageTargetSrc: ./targets.mind; maxTrack: 2" 
+      mindar-image="uiScanning: #example-scanning-overlay; imageTargetSrc: ./targets.mind; maxTrack: 2"
       color-space="sRGB" 
-      renderer="colorManagement: true, physicallyCorrectLights" 
+      renderer="colorManagement: true, physicallyCorrectLights"
       vr-mode-ui="enabled: false" 
       device-orientation-permission-ui="enabled: false">
 
@@ -73,21 +67,13 @@
         <a-asset-item id="avatarModel3" src="./pokeball.glb"></a-asset-item>
       </a-assets>
 
-      <!-- Cámara con cursor invisible -->
-      <a-camera position="0 0 0" look-controls="enabled: false">
-        <a-cursor 
-          id="cursor" 
-          raycaster="objects: .clickable" 
-          fuse="false" 
-          material="opacity: 0; transparent: true">
-        </a-cursor>
-      </a-camera>
+      <!-- Cámara -->
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <!-- Target 1: Charmander -->
       <a-entity mindar-image-target="targetIndex: 0">
         <a-plane src="#card" position="0 0 0" height="0.552" width="1"></a-plane>
         <a-gltf-model id="model1"
-          class="clickable"
           gltf-model="#avatarModel1"
           position="0 0 1" scale="0.7 0.7 0.7"
           rotation="0 180 0"
@@ -99,7 +85,6 @@
       <a-entity mindar-image-target="targetIndex: 1">
         <a-plane src="#card" position="0 0 0" height="0.552" width="1"></a-plane>
         <a-gltf-model id="model2"
-          class="clickable"
           gltf-model="#avatarModel2"
           position="0 0 1" scale="0.7 0.7 0.7"
           rotation="0 180 0"
@@ -108,6 +93,7 @@
       </a-entity>
     </a-scene>
 
+    <!-- Script para alternar modelos -->
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const model1 = document.querySelector("#model1");
@@ -120,14 +106,20 @@
         let toggled = false;
 
         function toggleModels() {
-          toggled = !toggled;
-          model1.setAttribute("gltf-model", toggled ? alt : original1);
-          model2.setAttribute("gltf-model", toggled ? alt : original2);
+          // Solo alterna si algún target está visible
+          const target1Visible = document.querySelector('[mindar-image-target="targetIndex: 0"]').getAttribute('visible');
+          const target2Visible = document.querySelector('[mindar-image-target="targetIndex: 1"]').getAttribute('visible');
+
+          if (target1Visible || target2Visible) {
+            toggled = !toggled;
+            model1.setAttribute("gltf-model", toggled ? alt : original1);
+            model2.setAttribute("gltf-model", toggled ? alt : original2);
+          }
         }
 
-        // Escucha el evento "click" del cursor de A-Frame (funciona en móvil)
-        model1.addEventListener("click", toggleModels);
-        model2.addEventListener("click", toggleModels);
+        // Escucha toques en móvil y clicks en escritorio
+        window.addEventListener("touchstart", toggleModels);
+        window.addEventListener("click", toggleModels);
       });
     </script>
   </body>
