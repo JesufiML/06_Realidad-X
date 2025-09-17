@@ -50,6 +50,7 @@
         border-radius: 10px;
         display: none;
         z-index: 10000;
+        font-family: Arial, sans-serif;
       }
     </style>
   </head>
@@ -91,7 +92,8 @@
                  class="clickable" data-target-index="0"></a-plane>
         <a-gltf-model id="model1"
           gltf-model="#avatarModel1"
-          position="0 0 0.1" scale="0.7 0.7 0.7"
+          position="0 0 0.1" 
+          scale="0.7 0.7 0.7"
           rotation="0 180 0"
           animation-mixer
           class="clickable" data-target-index="0">
@@ -104,7 +106,8 @@
                  class="clickable" data-target-index="1"></a-plane>
         <a-gltf-model id="model2"
           gltf-model="#avatarModel2"
-          position="0 0 0.1" scale="0.7 0.7 0.7"
+          position="0 0 0.1" 
+          scale="0.6 0.6 0.6"
           rotation="0 180 0"
           animation-mixer
           class="clickable" data-target-index="1">
@@ -120,6 +123,7 @@
             entity: document.querySelector("#target0"),
             model: document.querySelector("#model1"),
             original: "#avatarModel1",
+            originalScale: "0.7 0.7 0.7",
             toggled: false,
             visible: false
           },
@@ -127,6 +131,7 @@
             entity: document.querySelector("#target1"),
             model: document.querySelector("#model2"),
             original: "#avatarModel2",
+            originalScale: "0.6 0.6 0.6",
             toggled: false,
             visible: false
           }
@@ -134,6 +139,7 @@
 
         const tapHint = document.querySelector("#tap-hint");
         const altModel = "#avatarModel3";
+        const pokeballScale = "0.3 0.3 0.3";
 
         // Configurar eventos para cada target
         targets.forEach((target, index) => {
@@ -141,6 +147,7 @@
           target.entity.addEventListener("targetFound", () => {
             target.visible = true;
             tapHint.style.display = "block";
+            console.log("Target", index, "encontrado");
           });
           
           target.entity.addEventListener("targetLost", () => {
@@ -149,6 +156,7 @@
             if (!targets.some(t => t.visible)) {
               tapHint.style.display = "none";
             }
+            console.log("Target", index, "perdido");
           });
 
           // Hacer que tanto el plano como el modelo sean clickeables
@@ -156,6 +164,7 @@
           clickableElements.forEach(element => {
             element.addEventListener('click', () => {
               if (target.visible) {
+                console.log("Click en target", index);
                 toggleModel(target);
               }
             });
@@ -164,6 +173,7 @@
             element.addEventListener('touchstart', (e) => {
               if (target.visible) {
                 e.preventDefault();
+                console.log("Touch en target", index);
                 toggleModel(target);
               }
             });
@@ -174,14 +184,24 @@
         function toggleModel(target) {
           target.toggled = !target.toggled;
           const newModel = target.toggled ? altModel : target.original;
+          const newScale = target.toggled ? pokeballScale : target.originalScale;
           
-          // Cambiar el modelo
+          console.log("Cambiando modelo:", target.toggled ? "Pokebola" : "Original");
+          
+          // Cambiar el modelo y escala
           target.model.setAttribute("gltf-model", newModel);
+          target.model.setAttribute("scale", newScale);
           
           // Pequeña animación de feedback
-          target.model.setAttribute("scale", "0.65 0.65 0.65");
+          const currentScale = target.model.getAttribute("scale");
+          target.model.setAttribute("scale", {
+            x: currentScale.x * 0.9,
+            y: currentScale.y * 0.9,
+            z: currentScale.z * 0.9
+          });
+          
           setTimeout(() => {
-            target.model.setAttribute("scale", "0.7 0.7 0.7");
+            target.model.setAttribute("scale", newScale);
           }, 100);
         }
 
@@ -193,10 +213,15 @@
             // Verificar si algún target está visible
             const visibleTarget = targets.find(t => t.visible);
             if (visibleTarget) {
+              console.log("Touch general en escena, target visible encontrado");
               toggleModel(visibleTarget);
             }
           }
         });
+
+        // Log inicial
+        console.log("Script AR cargado correctamente");
+        console.log("Targets configurados:", targets.length);
       });
     </script>
   </body>
