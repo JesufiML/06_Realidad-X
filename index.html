@@ -1,57 +1,57 @@
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-<style>
-  body { margin: 0; overflow: hidden; }
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; }
 
-  /* Mensaje inicial */
-  #scanOverlay {
-    position: absolute;
-    top: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(0,0,0,0.5);
-    padding: 10px 20px;
-    border-radius: 10px;
-    color: #0f0;
-    font-family: Arial, sans-serif;
-    font-size: 16px;
-    text-align: center;
-    z-index: 1000;
-  }
-  #scanOverlay.hidden { display: none; }
+    /* Mensaje inicial */
+    #scanOverlay {
+      position: absolute;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0,0,0,0.5);
+      padding: 10px 20px;
+      border-radius: 10px;
+      color: #0f0;
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      text-align: center;
+      z-index: 1000;
+    }
+    #scanOverlay.hidden { display: none; }
 
-  /* Botón de cambiar modelo */
-  #changeBtn {
-    position: absolute;
-    bottom: 5%;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: rgba(0,255,0,0.7);
-    color: #000;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    z-index: 1000;
-  }
-</style>
+    /* Botón cambiar modelo */
+    #changeBtn {
+      position: absolute;
+      bottom: 5%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: rgba(0,255,0,0.85);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      z-index: 1000;
+      display: none; /* oculto al inicio */
+    }
+  </style>
 </head>
 
 <body>
   <!-- Mensaje inicial -->
   <div id="scanOverlay">Escanea los targets correctos para visualizar los modelos 3D</div>
 
-  <!-- Botón para cambiar modelo -->
+  <!-- Botón (se muestra al detectar target) -->
   <button id="changeBtn">Cambiar Modelo</button>
 
   <a-scene mindar-image="
       imageTargetSrc: targets.mind;
       maxTrack: 2;
-      uiScanning: #scanOverlay;
       uiLoading: no;
       uiError: no;
       autoStart: true;"
@@ -69,14 +69,24 @@
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- Target 0 -->
+    <!-- Target 0 (Charmander) -->
     <a-entity id="target0" mindar-image-target="targetIndex: 0">
-      <a-gltf-model id="model0" rotation="0 180 0" position="0 -0.25 0" scale="0.08 0.08 0.08" src="#charmanderModel" animation-mixer></a-gltf-model>
+      <a-gltf-model id="model0"
+        rotation="0 180 0"
+        position="0 -0.25 0"
+        scale="0.15 0.15 0.15"
+        src="#charmanderModel"
+        animation-mixer></a-gltf-model>
     </a-entity>
 
-    <!-- Target 1 -->
+    <!-- Target 1 (Pikachu) -->
     <a-entity id="target1" mindar-image-target="targetIndex: 1">
-      <a-gltf-model id="model1" rotation="0 180 0" position="0 -0.25 0" scale="0.08 0.08 0.08" src="#pikachuModel" animation-mixer></a-gltf-model>
+      <a-gltf-model id="model1"
+        rotation="0 180 0"
+        position="0 -0.25 0"
+        scale="0.15 0.15 0.15"
+        src="#pikachuModel"
+        animation-mixer></a-gltf-model>
     </a-entity>
 
   </a-scene>
@@ -90,25 +100,37 @@ document.addEventListener("DOMContentLoaded", () => {
   const target0 = document.querySelector('#target0');
   const target1 = document.querySelector('#target1');
 
-  // Función para cambiar ambos modelos al unificado
-  function cambiarModelos() {
-    model0.setAttribute('gltf-model', '#unifiedModel');
-    model1.setAttribute('gltf-model', '#unifiedModel');
+  let algunTargetVisible = false;
+
+  // Mostrar botón y ocultar mensaje al detectar un target
+  function onTargetFound() {
+    algunTargetVisible = true;
+    scanOverlay.classList.add('hidden');
+    changeBtn.style.display = 'block';
   }
 
-  // Evento botón
-  changeBtn.addEventListener('click', cambiarModelos);
+  // Si ambos se pierden, vuelve a mostrar mensaje y oculta botón
+  function onTargetLost() {
+    setTimeout(() => {
+      if (!target0.components["mindar-image-target"].visible &&
+          !target1.components["mindar-image-target"].visible) {
+        algunTargetVisible = false;
+        scanOverlay.classList.remove('hidden');
+        changeBtn.style.display = 'none';
+      }
+    }, 500);
+  }
 
-  // Oculta el mensaje al detectar cualquier target
-  target0.addEventListener('targetFound', () => scanOverlay.classList.add('hidden'));
-  target1.addEventListener('targetFound', () => scanOverlay.classList.add('hidden'));
+  // Listeners
+  target0.addEventListener('targetFound', onTargetFound);
+  target1.addEventListener('targetFound', onTargetFound);
+  target0.addEventListener('targetLost', onTargetLost);
+  target1.addEventListener('targetLost', onTargetLost);
 
-  // Vuelve a mostrar mensaje si se pierden ambos targets
-  target0.addEventListener('targetLost', () => {
-    if (!target1.components["mindar-image-target"].visible) scanOverlay.classList.remove('hidden');
-  });
-  target1.addEventListener('targetLost', () => {
-    if (!target0.components["mindar-image-target"].visible) scanOverlay.classList.remove('hidden');
+  // Cambiar ambos modelos por la pokebola
+  changeBtn.addEventListener('click', () => {
+    model0.setAttribute('gltf-model', '#unifiedModel');
+    model1.setAttribute('gltf-model', '#unifiedModel');
   });
 });
 </script>
